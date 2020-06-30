@@ -20,6 +20,8 @@
 #include "grackle_types.h"
 #include "grackle_chemistry_data.h"
 
+#define tiny 1.e-60
+
 /* function prototypes */
 
 int update_UVbackground_rates(chemistry_data *my_chemistry,
@@ -230,6 +232,12 @@ int update_UVbackground_rates(chemistry_data *my_chemistry,
   my_uvb_rates->piHI *= Ramp;
   my_uvb_rates->piHeII *= Ramp;
   my_uvb_rates->piHeI *= Ramp;
+
+  if (my_chemistry->water_rates == 3){
+     my_uvb_rates->k27 = tiny;
+  }
+
+
 
   /* Molecular hydrogen constant photo-dissociation */
 

@@ -89,6 +89,7 @@ MACH_LIBS         = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH)
 
 # if $(HOME)/local does not exist, mkdir before `make install`
 
-MACH_INSTALL_PREFIX = $(HOME)/local
+#MACH_INSTALL_PREFIX = $(HOME)/local
+MACH_INSTALL_PREFIX = /projects/ncsa/caps/gaglian2/water
 MACH_INSTALL_LIB_DIR =
 MACH_INSTALL_INCLUDE_DIR =

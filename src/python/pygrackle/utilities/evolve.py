@@ -14,6 +14,7 @@
 from collections import defaultdict
 import numpy as np
 from yt import YTArray
+import sys
 
 from .physical_constants import \
     gravitational_constant_cgs, \
@@ -67,6 +68,8 @@ def evolve_freefall(fc, final_density, safety_factor=0.01,
         # update densities
         for field in fc.density_fields:
             fc[field] *= density_ratio
+        for field in fc.n_density_fields:
+            fc[field] *= density_ratio
 
         # now update energy for adiabatic heating from collapse
         fc["energy"][0] += (my_chemistry.Gamma - 1.) * fc["energy"][0] * \
@@ -76,6 +79,49 @@ def evolve_freefall(fc, final_density, safety_factor=0.01,
 
         # update time
         current_time += dt
+
+    data = create_data_arrays(fc, data)
+    return data
+
+def evolve_freefall_metal(fc, final_metallicity, final_time,
+       include_pressure=False, dtmax=1.e11):
+    my_chemistry = fc.chemistry_data
+ 
+    i = 0
+    data = defaultdict(list)
+    current_time = 0.0
+    dt = 1.e-15 # safety_factor
+    dtmax = dtmax / my_chemistry.time_units
+    #dt = dtmax
+    fac = 1.001
+    while (current_time < final_time):
+
+        for field in fc.density_fields:
+            data[field].append(fc[field][0] * my_chemistry.density_units)
+        for field in fc.n_density_fields:
+            data[field].append(fc[field][0])
+
+        # update hydrogen number density
+        fc.calculate_hydrogen_number_density()
+        data["nH"].append(fc["nH"][0])
+
+        fc["temperature"][0] = 100 #K
+        data["temperature"].append(fc["temperature"][0])
+        data["pressure"].append(fc["pressure"][0])
+        data["time"].append(current_time * my_chemistry.time_units)
+        i = i + 1
+        if (i%(1.e4) == 0):
+          print("Evolve Metal Freefall - dt: %e, t: %e yr, T: %e K, Z = %e Zsol." %
+               (dt*my_chemistry.time_units,
+                   (current_time * my_chemistry.time_units / sec_per_year),
+                fc["temperature"][0],
+                 (fc["metal"][0]/my_chemistry.SolarMetalFractionByMass/\
+                 fc["density"])))
+
+        fc.solve_chemistry(dt)
+        # update time
+        current_time += dt
+        dt = min(dt*fac,dtmax)
 
     data = create_data_arrays(fc, data)
     return data
@@ -149,8 +195,16 @@ def add_to_data(fc, data, current_time=None):
 
     for field in fc.density_fields:
         data[field].append(fc[field][0] * fc.chemistry_data.density_units)
+    for field in fc.n_density_fields:
+        data[field].append(fc[field][0])
     data["energy"].append(fc["energy"][0] * fc.chemistry_data.energy_units)
     fc.calculate_temperature()
+
+    # update hydrogen number density
+    fc.calculate_hydrogen_number_density()
+
+    data["nH"].append(fc["nH"][0])
+
     data["temperature"].append(fc["temperature"][0])
     fc.calculate_pressure()
     data["pressure"].append(fc["pressure"][0] * fc.chemistry_data.pressure_units)
@@ -178,6 +232,8 @@ def create_data_arrays(fc, data):
             data[field] = YTArray(data[field], "K")
         elif field == "pressure":
             data[field] = YTArray(data[field], "dyne/cm**2")
+        elif (field == "nH" or field in fc.n_density_fields):
+            data[field] = YTArray(data[field], "cm**-3")
         else:
             data[field] = np.array(data[field])
     return data

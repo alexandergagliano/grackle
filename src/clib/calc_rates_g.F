@@ -4,6 +4,7 @@ c//////////////////////  SUBROUTINE CALC_RATES_G  \\\\\\\\\\\\\\\\\\\\\\\
 c
       subroutine calc_rates_g(
      &             ispecies, igammah, idust, idustall,
+     &             iwater, water_rates,
      &             nratec, aye, temstart, temend,
      &             casebrates, threebody,
      &             uxyz, uaye, urho, utim,
@@ -62,6 +63,7 @@ c    ibrco    = Brehmmstrahlung cooling flag (1 = on)
 c    icico    = Collisional ionization flag (1 = on)
 c    iceco    = Collisional excitation flag (1 = on)
 c    iphoto_mol = Molecular photo-dissociation flag (1 = on)
+c    water_rates = Water network rates flag (1=Omukai,2=Grackle,3=Bialy)
 c
 c  INPUTS
 c    nratec   = number of temperature bins in rate equations
@@ -132,8 +134,9 @@ c
 c
 c  Arguments
 c
-      integer ispecies, igammah, idust, idustall, nratec, casebrates,
-     &        threebody, ndratec
+      integer ispecies, iwater, igammah, idust, idustall, nratec, 
+     &        casebrates,
+     &        threebody, ndratec, water_rates
       real*8  aye, temstart, temend, dtemstart, dtemend
       real*8  uxyz, uaye, urho, utim
       real*8  ceHIa(nratec), ceHeIa(nratec), ceHeIIa(nratec),
@@ -543,6 +546,18 @@ c
           k57a(i) = tiny
           k58a(i) = tiny
         endif
+
+         if (water_rates .eq. 1) then
+           k50a(i) = tiny
+           k51a(i) = tiny
+           k52a(i) = tiny
+           k53a(i) = tiny
+           k54a(i) = tiny
+           k55a(i) = tiny
+           k56a(i) = tiny
+           k57a(i) = tiny
+           k58a(i) = tiny
+         endif
 c
 c     H2 formation on dust grains.
 c     Loop over dust temperature.

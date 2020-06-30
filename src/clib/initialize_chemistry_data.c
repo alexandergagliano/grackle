@@ -46,6 +46,7 @@ int initialize_UVbackground_data(chemistry_data *my_chemistry,
 
 extern void FORTRAN_NAME(calc_rates_g)(
      int *ispecies, int *igammah, int *idust, int *idustall,
+     int *iwater, int *water_rates,
      int *nratec, double *aye, double *temstart, double *temend, 
      int *casebrates, int *threebody,
      double *uxyz, double *uaye, double *urho, double *utim,
@@ -255,8 +256,11 @@ int _initialize_chemistry_data(chemistry_data *my_chemistry,
   /* Call FORTRAN routine to do the hard work. */
 
   FORTRAN_NAME(calc_rates_g)(
-     &my_chemistry->primordial_chemistry, &my_chemistry->photoelectric_heating,
+     &my_chemistry->primordial_chemistry,
+     &my_chemistry->photoelectric_heating,
      &my_chemistry->h2_on_dust, &my_chemistry->dust_chemistry,
+     &my_chemistry->withWater,
+     &my_chemistry->water_rates,
      &my_chemistry->NumberOfTemperatureBins, &my_units->a_value,
      &my_chemistry->TemperatureStart, &my_chemistry->TemperatureEnd,
      &my_chemistry->CaseBRecombination, &my_chemistry->three_body_rate,
@@ -326,6 +330,39 @@ int _initialize_chemistry_data(chemistry_data *my_chemistry,
   my_rates->UVbackground_table.crsHI  = NULL;
   my_rates->UVbackground_table.crsHeII = NULL;
   my_rates->UVbackground_table.crsHeI = NULL;
+
+  /* Adding 31 fields for reading of molecular UV rates */
+  my_rates->UVbackground_table.Nz_molec     = 0;
+  my_rates->UVbackground_table.z_molec      = NULL;
+  my_rates->UVbackground_table.UV1    = NULL;
+  my_rates->UVbackground_table.UV2    = NULL;
+  my_rates->UVbackground_table.UV3    = NULL;
+  my_rates->UVbackground_table.UV4    = NULL;
+  my_rates->UVbackground_table.UV5    = NULL;
+  my_rates->UVbackground_table.UV6    = NULL;
+  my_rates->UVbackground_table.UV7    = NULL;
+  my_rates->UVbackground_table.UV8    = NULL;
+  my_rates->UVbackground_table.UV9    = NULL;
+  my_rates->UVbackground_table.UV10   = NULL;
+  my_rates->UVbackground_table.UV11   = NULL;
+  my_rates->UVbackground_table.UV12   = NULL;
+  my_rates->UVbackground_table.UV13   = NULL;
+  my_rates->UVbackground_table.UV14   = NULL;
+  my_rates->UVbackground_table.UV15   = NULL;
+  my_rates->UVbackground_table.UV16   = NULL;
+  my_rates->UVbackground_table.UV17   = NULL;
+  my_rates->UVbackground_table.UV18   = NULL;
+  my_rates->UVbackground_table.UV19   = NULL;
+  my_rates->UVbackground_table.UV20   = NULL;
+  my_rates->UVbackground_table.UV21   = NULL;
+  my_rates->UVbackground_table.UV22   = NULL;
+  my_rates->UVbackground_table.UV23   = NULL;
+  my_rates->UVbackground_table.UV24   = NULL;
+  my_rates->UVbackground_table.UV25   = NULL;
+  my_rates->UVbackground_table.UV26   = NULL;
+  my_rates->UVbackground_table.UV34   = NULL;
+  my_rates->UVbackground_table.UV37   = NULL;
+  my_rates->UVbackground_table.UV38   = NULL;
 
   if (initialize_UVbackground_data(my_chemistry, my_rates) == FAIL) {
     fprintf(stderr, "Error in initialize_UVbackground_data.\n");
@@ -485,6 +522,16 @@ void show_parameters(FILE *fp, chemistry_data *my_chemistry)
           my_chemistry->self_shielding_method);
   fprintf(fp, "H2_self_shielding                 = %d\n",
           my_chemistry->H2_self_shielding);
+  fprintf(fp, "withWater                         = %d\n",
+          my_chemistry->withWater);
+  fprintf(fp, "water_rates                       = %d\n",
+          my_chemistry->water_rates);
+  fprintf(fp, "crx_ionization                    = %d\n",
+          my_chemistry->crx_ionization);
+  fprintf(fp, "grackle_molecular_data            = %s\n",
+          my_chemistry->grackle_molecular_data);
+  fprintf(fp, "water_only                        = %d\n",
+          my_chemistry->water_only);
 # ifdef _OPENMP
   fprintf(fp, "omp_nthreads                      = %d\n",
           my_chemistry->omp_nthreads);

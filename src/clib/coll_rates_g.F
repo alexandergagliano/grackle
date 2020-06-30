@@ -62,6 +62,7 @@ c
      $       k14, k15, k16, k17, k18, k19, k23
       real*8 kunit, T
       integer casebrates
+      real*8 d
 c
 c  Parameters
 c

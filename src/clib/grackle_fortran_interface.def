@@ -74,10 +74,40 @@ c     This is the fortran definition of grackle_field_data
 
          TYPE(C_PTR) :: H2_self_shielding_length
 
+c        NEW WATER CHEMISTRY
+
+         TYPE(C_PTR) :: Water_density
+         TYPE(C_PTR) :: O_density
+         TYPE(C_PTR) :: OH_density
+         TYPE(C_PTR) :: O2_density
+         TYPE(C_PTR) :: Oplus_density
+         TYPE(C_PTR) :: OHplus_density
+         TYPE(C_PTR) :: H2Oplus_density
+         TYPE(C_PTR) :: H3Oplus_density
+         TYPE(C_PTR) :: O2plus_density
+         TYPE(C_PTR) :: Cplus_density
+         TYPE(C_PTR) :: C_density
+         TYPE(C_PTR) :: CH_density
+         TYPE(C_PTR) :: CH2_density
+         TYPE(C_PTR) :: CH3_density
+         TYPE(C_PTR) :: CH4_density
+         TYPE(C_PTR) :: CO_density
+         TYPE(C_PTR) :: COplus_density
+         TYPE(C_PTR) :: CO2_density
+         TYPE(C_PTR) :: CHplus_density
+         TYPE(C_PTR) :: CH2plus_density
+         TYPE(C_PTR) :: H3plus_density
+         TYPE(C_PTR) :: HCOplus_density
+         TYPE(C_PTR) :: HeHplus_density
+         TYPE(C_PTR) :: CH3plus_density
+         TYPE(C_PTR) :: CH4plus_density
+         TYPE(C_PTR) :: CH5plus_density
+         TYPE(C_PTR) :: O2Hplus_density
+
          TYPE(C_PTR) :: isrf_habing
       END TYPE
 
-c     This is the fortran definition of grackle_chemistry_dadta
+c     This is the fortran definition of grackle_chemistry_data
 
       TYPE, BIND(C) :: grackle_chemistry_data
          INTEGER(C_INT) :: use_grackle
@@ -126,6 +156,11 @@ c     This is the fortran definition of grackle_chemistry_dadta
          INTEGER(C_INT) :: radiative_transfer_intermediate_step
          INTEGER(C_INT) :: radiative_transfer_hydrogen_only
          INTEGER(C_INT) :: self_shielding_method
+         INTEGER(C_INT) :: withWater
+         INTEGER(C_INT) :: water_rates
+         INTEGER(C_INT) :: water_only
+         INTEGER(C_INT) :: crx_ionization
+         TYPE(C_PTR)    :: grackle_molecular_data
 cc       INTEGER(C_INT) :: omp_nthreads // not supported in fortran
       END TYPE
 

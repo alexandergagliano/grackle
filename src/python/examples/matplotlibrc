@@ -1,0 +1,60 @@
+# matplotlibrc file
+
+# These specifications come from nature
+# http://www.nature.com/nature/authors/submissions/final/
+
+# Standard journal text and figure width is 3.5 inches
+# I prefer plot widths twice this so they by default
+# are nice for larger powerpoint slides as well.
+# Two aspect ratios to consider:
+# A. The golden ratio puts the height as h = w/1.618
+# B. Default matplotlib is h = w/1.3333
+# Golden ratio figures
+#figure.figsize  : 3.5, 2.163
+#figure.figsize  : 7.0,4.326
+
+# Eqiv. 11 pt font
+axes.labelsize  : 22.0  # fontsize of the x any y labels
+xtick.labelsize : 22.0  # fontsize of the tick labels
+ytick.labelsize : 22.0  # fontsize of the tick labels
+legend.fontsize : 20.0  # fontsize for legend ~10 pt.
+figure.titlesize :22.0
+
+# Nature asks for either Helvetica or Arial
+#font.family         : sans-serif
+#font.sans-serif     : Helvetica
+#font.sans-serif    : Helvetica, Arial, Avant Garde, Computer Modern Sans serif
+#font.sans-serif     : Arial
+
+# People like lines being a tad thick. Use at least 2 or possibly 3
+lines.linewidth   : 3.0
+#text.usetex     : True  # use latex for all text handling
+
+# x and y ticks
+xtick.major.size     : 11
+xtick.minor.size     : 6
+xtick.major.width    : 2.0
+ytick.major.size     : 11
+ytick.minor.size     : 6
+ytick.major.width    : 2.0
+
+# Legend
+legend.numpoints     : 1
+#legend.frameon       : False
+
+# 2D images
+image.origin : lower
+
+# EPS stuff
+ps.usedistiller   : xpdf
+
+# LINES
+lines.markersize  : 12
+
+# Fix ticks
+xtick.top: True
+xtick.direction: in
+
+ytick.right: True
+ytick.direction: in
+axes.linewidth      : 1.6

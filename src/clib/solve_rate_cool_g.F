@@ -8,6 +8,7 @@
      &                in, jn, kn, nratec, iexpand, 
      &                ispecies, imetal, imcool, idust,
      &                idustall, idustfield, idim,
+     &                iwater, wrates,
      &                is, js, ks, ie, je, ke, ih2co, ipiht, igammah,
      &                dx, dt, aye, temstart, temend, 
      &                utem, uxyz, uaye, urho, utim,
@@ -25,7 +26,14 @@
      &                reHeII2a, reHeIIIa, brema, compa, gammaha, isrf,
      &                regra, gamma_isrfa,
      &                comp_xraya, comp_temp, piHI, piHeI, piHeII,
-     &                HM, H2I, H2II, DI, DII, HDI, metal, dust,
+     &                HM, H2I, H2II, DI, DII, HDI, 
+     &                H2O, O, OH, O2, Oplus, OHplus,
+     &                H2Oplus, H3Oplus, O2plus, Cplus, C, CH,
+     &                CH2, CH3, CH4, CO, COplus,
+     &                CO2, CHplus, CH2plus, H3plus,
+     &                HCOplus, HeHplus, CH3plus,
+     &                CH4plus, CH5plus, O2Hplus,
+     &                metal, dust,
      &                hyd01ka, h2k01a, vibha, rotha, rotla, 
      &                gpldla, gphdla, hdltea, hdlowa,
      &                gaHIa, gaH2a, gaHea, gaHpa, gaela, 
@@ -76,6 +84,24 @@
 !    H2II     - H_2+ density field
 !    metal    - metal density field
 !    dust     - dust density field
+!    H2O    - H2O density field
+!    O        - O density field
+!    OH       - OH density field
+!    O2       - O2 density field
+!    Oplus    - O+ density field
+!    OHplus   - OH+ density field
+!    H2Oplus  - H2O+ density field
+!    H3Oplus  - H3O+ density field
+!    O2plus   - O2+ density field
+!    Cplus    - C+ density field
+!    C        - C density field
+!    CH       - CH density field
+!    CH2      - CH2 density field
+!    CH3      - CH3 density field
+!    CH4      - CH4 density field
+!    CO       - CO density field
+!    COplus   - CO+ density field
+!    CO2      - CO2 density field
 !    kph*     - photoionization fields
 !    gamma*   - photoheating fields
 !
@@ -93,6 +119,7 @@
 !    ipiht    - flag to include photoionization heating (1 = on, 0 = off)
 !    iH2shield - flag for approximate self-shielding of H2 (Wolcott-Green+ 2011)
 !    iradshield - flag for approximate self-shielding of UV background
+!    iwater     - flag to include water chemistry (Omukai 2005)
 !    avgsighi   - spectrum averaged ionization crs for HI for use with shielding
 !    avgsighei  - spectrum averaged ionization crs for HeI for use with shielding
 !    avgsigheii - spectrum averaged ionization crs for HeII for use with shielding
@@ -159,6 +186,7 @@
       integer icool, in, jn, kn, is, js, ks, ie, je, ke, nratec, 
      &        iexpand, ih2co, ipiht, ispecies, imetal, idim,
      &        ierr, imcool, idust, idustall, idustfield,
+     &        iwater, wrates,
      &        igammah, ih2optical, iciecool, ithreebody,
      &        ndratec, clnew, iVheat, iMheat, iH2shield, iradshield,
      &        iradtrans, iradcoupled, iradstep, irt_honly,
@@ -177,7 +205,16 @@
      &        d(in,jn,kn),     e(in,jn,kn),
      &        u(in,jn,kn),    v(in,jn,kn),     w(in,jn,kn),
      &        metal(in,jn,kn), dust(in,jn,kn),
-     &        Vheat(in,jn,kn), Mheat(in,jn,kn)
+     &        Vheat(in,jn,kn), Mheat(in,jn,kn),
+     &        H2O(in,jn,kn), O(in,jn,kn), OH(in,jn,kn),
+     &        O2(in,jn,kn), Oplus(in,jn,kn), OHplus(in,jn,kn),
+     &        H2Oplus(in,jn,kn), H3Oplus(in,jn,kn), O2plus(in,jn,kn),
+     &        Cplus(in,jn,kn), C(in,jn,kn), CH(in,jn,kn),
+     &        CH2(in,jn,kn), CH3(in,jn,kn), CH4(in,jn,kn),
+     &        CO(in,jn,kn), COplus(in,jn,kn), CO2(in,jn,kn),
+     &        CHplus(in,jn,kn), CH2plus(in,jn,kn), H3plus(in,jn,kn),
+     &        HCOplus(in,jn,kn), HeHplus(in,jn,kn), CH3plus(in,jn,kn),
+     &        CH4plus(in,jn,kn), CH5plus(in,jn,kn), O2Hplus(in,jn,kn)
 
 !  Radiative transfer fields
 
@@ -311,7 +348,6 @@
 !=======================================================================
 
 !     Set error indicator
-
       ierr = 0
 
 !     Set flag for dust-related options
@@ -346,11 +382,12 @@ c      chunit = (7.17775e-12_DKIND)/(2._DKIND*uvel*uvel*mh)   ! 4.5 eV per H2 fo
      &                  aye**(-3))
 
       endif
-
       call ceiling_species_g(d, de, HI, HII, HeI, HeII, HeIII,
      &                     HM, H2I, H2II, DI, DII, HDI, metal,
+     &                     C, O, 
      &                     is, ie, js, je, ks, ke,
-     &                     in, jn, kn, ispecies, imetal)
+     &                     in, jn, kn, ispecies, imetal, iwater, urho, 
+     &                     aye**(3))
 
 
 !  Loop over zones, and do an entire i-column in one go
@@ -769,9 +806,16 @@ c      chunit = (7.17775e-12_DKIND)/(2._DKIND*uvel*uvel*mh)   ! 4.5 eV per H2 fo
 !           sweep of a backward Euler method ---
 
             call step_rate_g(de, HI, HII, HeI, HeII, HeIII, d,
-     &                     HM, H2I, H2II, DI, DII, HDI, dtit,
+     &                     HM, H2I, H2II, DI, DII, HDI, 
+     &                     Oplus, OHplus, H2Oplus, H3Oplus, O2plus,
+     &                     Cplus, COplus, CHplus,
+     &                     CH2plus, H3plus,
+     &                     HCOplus, HeHplus, CH3plus,
+     &                     CH4plus, CH5plus, O2Hplus,
+     &                     dtit,
      &                     in, jn, kn, is, ie, j, k,
      &                     ispecies, anydust,
+     &                     iwater, wrates,
      &                     k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
      &                     k12, k13, k14, k15, k16, k17, k18, k19, k22,
      &                     k24, k25, k26, k27, k28, k29, k30,
@@ -849,7 +893,6 @@ c            WARNING_MESSAGE
 !     Convert densities back to comoving from proper
 
       if (iexpand .eq. 1) then
-
          call scale_fields_g(d, de, HI, HII, HeI, HeII, HeIII,
      &                  HM, H2I, H2II, DI, DII, HDI, metal, dust,
      &                  is, ie, js, je, ks, ke,
@@ -864,8 +907,14 @@ c            WARNING_MESSAGE
 
       call make_consistent_g(de, HI, HII, HeI, HeII, HeIII,
      &                     HM, H2I, H2II, DI, DII, HDI, metal, 
+     &                     Oplus, OHplus, H2Oplus, H3Oplus, O2plus,
+     &                     Cplus, COplus, CHplus,
+     &                     CH2plus, H3plus,
+     &                     HCOplus, HeHplus, CH3plus,
+     &                     CH4plus, CH5plus, O2Hplus,
      &                     d, is, ie, js, je, ks, ke,
-     &                     in, jn, kn, ispecies, imetal, fh, dtoh)
+     &                     in, jn, kn, ispecies, imetal, iwater, fh, 
+     &                     dtoh, wrates)
 
       endif
 
@@ -974,8 +1023,10 @@ c -----------------------------------------------------------
 
       subroutine ceiling_species_g(d, de, HI, HII, HeI, HeII, HeIII,
      &                           HM, H2I, H2II, DI, DII, HDI, metal,
+     &                           C, O, 
      &                           is, ie, js, je, ks, ke,
-     &                           in, jn, kn, ispecies, imetal)
+     &                           in, jn, kn, ispecies, imetal, iwater, 
+     &                           urho, factor)
 c -------------------------------------------------------------------
 
       implicit NONE
@@ -983,17 +1034,20 @@ c -------------------------------------------------------------------
 
 !     Arguments
 
-      integer in, jn, kn, is, ie, js, je, ks, ke, ispecies, imetal
+      integer in, jn, kn, is, ie, js, je, ks, ke, ispecies, imetal,
+     &        iwater
       R_PREC  d(in,jn,kn),
      &        de(in,jn,kn),   HI(in,jn,kn),   HII(in,jn,kn),
      &        HeI(in,jn,kn), HeII(in,jn,kn), HeIII(in,jn,kn),
      &        HM(in,jn,kn),  H2I(in,jn,kn), H2II(in,jn,kn),
      &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn),
+     &        O(in,jn,kn), C(in,jn,kn),
      &        metal(in,jn,kn)
-
+      real*8  urho, factor
 !     locals
 
       integer i, j, k
+      R_PREC metallicity(in, jn, kn), Z_sol, metal_cgs(in,jn,kn)
 
       if (ispecies .gt. 0) then
          do k = ks+1, ke+1
@@ -1040,6 +1094,22 @@ c -------------------------------------------------------------------
                enddo
             enddo
          enddo
+      endif
+
+      if (iwater .eq. 1) then
+         do k = ks+1, ke+1
+            do j = js+1, je+1
+               do i = is+1, ie+1
+                  Z_sol = 0.01295
+                  metallicity(i,j,k) = metal(i,j,k) / d(i,j,k) / Z_sol
+                  metal_cgs(i,j,k) = metal(i,j,k) *  urho * factor
+                  if (metallicity(i,j,k) .lt. 1.e-8) then
+                     C(i,j,k) = 0.0
+                     O(i,j,k) = 0.0
+                 endif
+               enddo
+            enddo
+          enddo
       endif
 
       return
@@ -1897,8 +1967,16 @@ c
 !   by one (sub-)cycle (dtit).
 
       subroutine step_rate_g(de, HI, HII, HeI, HeII, HeIII, d,
-     &                     HM, H2I, H2II, DI, DII, HDI, dtit,
-     &                     in, jn, kn, is, ie, j, k, ispecies, anydust,
+     &                     HM, H2I, H2II, DI, DII, HDI, 
+     &                     Oplus, OHplus, H2Oplus, H3Oplus, O2plus,
+     &                     Cplus, COplus, CHplus,
+     &                     CH2plus, H3plus,
+     &                     HCOplus, HeHplus, CH3plus,
+     &                     CH4plus, CH5plus, O2Hplus,
+     &                     dtit,
+     &                     in, jn, kn, is, ie, j, k, 
+     &                     ispecies, anydust,
+     &                     iwater, wrates,
      &                     k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11,
      &                     k12, k13, k14, k15, k16, k17, k18, k19, k22,
      &                     k24, k25, k26, k27, k28, k29, k30,
@@ -1919,8 +1997,8 @@ c -------------------------------------------------------------------
 
 !     arguments
 
-      integer ispecies, in, jn, kn, is, ie, j, k,
-     &        iradtrans, irt_honly
+      integer ispecies, iwater, in, jn, kn, is, ie, j, k,
+     &        iradtrans, irt_honly, wrates
       real*8 dtit(in), dedot_prev(in), HIdot_prev(in)
       logical itmask(in), anydust
 
@@ -1930,7 +2008,14 @@ c -------------------------------------------------------------------
      &        HeI(in,jn,kn), HeII(in,jn,kn), HeIII(in,jn,kn),
      &        d(in,jn,kn),
      &        HM(in,jn,kn),  H2I(in,jn,kn), H2II(in,jn,kn),
-     &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn)
+     &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn),
+     &        Oplus(in,jn,kn), OHplus(in,jn,kn), H2Oplus(in,jn,kn),
+     &        H3Oplus(in,jn,kn), O2plus(in,jn,kn), Cplus(in,jn,kn),
+     &        COplus(in,jn,kn),
+     &        CHplus(in,jn,kn),
+     &        CH2plus(in,jn,kn), H3plus(in,jn,kn),
+     &        HCOplus(in,jn,kn), HeHplus(in,jn,kn), CH3plus(in,jn,kn),
+     &        CH4plus(in,jn,kn), CH5plus(in,jn,kn), O2Hplus(in,jn,kn)
 
 !     Radiation Fields
       R_PREC  kphHI(in,jn,kn), kphHeI(in,jn,kn), kphHeII(in,jn,kn)
@@ -1969,7 +2054,6 @@ c -------------------------------------------------------------------
             if (itmask(i)) then
 
 !        1) HI
-
             scoef  = k2(i)*HII(i,j,k)*de(i,j,k)
             acoef  = k1(i)*de(i,j,k)
      &             + k57(i)*HI(i,j,k)
@@ -2318,6 +2402,23 @@ c
      &        HeIII(i,j,k)/2._RKIND
          if (ispecies .gt. 1) 
      &        de(i,j,k) = de(i,j,k) - HM(i,j,k) + H2II(i,j,k)/2._RKIND
+         if (ispecies .gt. 2)
+     &        de(i,j,k) = de(i,j,k) + DII(i,j,k)/2._RKIND
+         if (iwater .eq. 1) then
+                de(i,j,k) = de(i,j,k) +
+     &          Oplus(i,j,k)/16._RKIND +
+     &          OHplus(i,j,k)/17._RKIND +
+     &          H2Oplus(i,j,k)/18._RKIND +
+     &          H3Oplus(i,j,k)/19._RKIND +
+     &          O2plus(i,j,k)/32._RKIND +
+     &          Cplus(i,j,k)/12._RKIND +
+     &          COplus(i,j,k)/28._RKIND
+                if (wrates .eq. 3) de(i,j,k) = de(i,j,k) +
+     &               HCOplus(i,j,k)/29._RKIND +
+     &               HeHplus(i,j,k)/5._RKIND +
+     &               CH3plus(i,j,k)/15._RKIND
+         endif
+
          dedot_prev(i) = abs(de(i,j,k)-dedot_prev(i))/
      &        max(dtit(i),tiny8)
 
@@ -2355,9 +2456,15 @@ c
 !     insure conservation of particle number and charge.
 
       subroutine make_consistent_g(de, HI, HII, HeI, HeII, HeIII,
-     &                        HM, H2I, H2II, DI, DII, HDI, metal, d,
-     &                        is, ie, js, je, ks, ke,
-     &                        in, jn, kn, ispecies, imetal, fh, dtoh)
+     &                        HM, H2I, H2II, DI, DII, HDI, metal, 
+     &                        Oplus, OHplus, H2Oplus, H3Oplus, O2plus,
+     &                        Cplus, COplus, CHplus,
+     &                        CH2plus, H3plus,
+     &                        HCOplus, HeHplus, CH3plus,
+     &                        CH4plus, CH5plus, O2Hplus,
+     &                        d, is, ie, js, je, ks, ke,
+     &                        in, jn, kn, ispecies, imetal, iwater, 
+     &                        fh, dtoh, wrates)
 ! -------------------------------------------------------------------
 
       implicit NONE
@@ -2365,12 +2472,20 @@ c
 
 !     Arguments
 
-      integer in, jn, kn, is, ie, js, je, ks, ke, ispecies, imetal
+      integer in, jn, kn, is, ie, js, je, ks, ke, ispecies, imetal, 
+     &        iwater, wrates
       R_PREC  de(in,jn,kn),   HI(in,jn,kn),   HII(in,jn,kn),
      &        HeI(in,jn,kn), HeII(in,jn,kn), HeIII(in,jn,kn),
      &        d(in,jn,kn), metal(in,jn,kn),
      &        HM(in,jn,kn),  H2I(in,jn,kn), H2II(in,jn,kn),
-     &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn)
+     &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn),
+     &        Oplus(in,jn,kn), OHplus(in,jn,kn), H2Oplus(in,jn,kn),
+     &        H3Oplus(in,jn,kn), O2plus(in,jn,kn),
+     &        Cplus(in,jn,kn), COplus(in,jn,kn),
+     &        CHplus(in,jn,kn), CH2plus(in,jn,kn),
+     &        H3plus(in,jn,kn),
+     &        HCOplus(in,jn,kn), HeHplus(in,jn,kn), CH3plus(in,jn,kn),
+     &        CH4plus(in,jn,kn), CH5plus(in,jn,kn), O2Hplus(in,jn,kn)
       real*8 fh, dtoh
 
 !     locals
@@ -2464,6 +2579,24 @@ c
      &        HeIII(i,j,k)/2._RKIND
          if (ispecies .gt. 1) de(i,j,k) = de(i,j,k)
      &        - HM(i,j,k) + H2II(i,j,k)/2._RKIND
+         if (ispecies .gt. 2) de(i,j,k) = de(i,j,k)
+     &        + DII(i,j,k)/2._RKIND
+
+      if (iwater .eq. 1) then
+               de (i,j,k) = de(i,j,k) +
+     &         Oplus(i,j,k)/16._RKIND +
+     &         OHplus(i,j,k)/17._RKIND +
+     &         H2Oplus(i,j,k)/18._RKIND +
+     &         H3Oplus(i,j,k)/19._RKIND +
+     &         O2plus(i,j,k)/32._RKIND +
+     &         Cplus(i,j,k)/12._RKIND +
+     &         COplus(i,j,k)/28._RKIND
+               if (wrates .eq. 3) de (i,j,k) = de(i,j,k) +
+     &               HCOplus(i,j,k)/29._RKIND +
+     &               HeHplus(i,j,k)/5._RKIND +
+     &               CH3plus(i,j,k)/15._RKIND
+      endif
+
       enddo
 
       enddo  ! end loop over j

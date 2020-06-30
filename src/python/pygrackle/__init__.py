@@ -22,7 +22,8 @@ from .utilities.convenience import \
 
 from .utilities.evolve import \
     evolve_constant_density, \
-    evolve_freefall
+    evolve_freefall, \
+    evolve_freefall_metal
 
 from .utilities.units import \
     set_cosmology_units

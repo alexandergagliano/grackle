@@ -197,6 +197,14 @@ cdef class chemistry_data:
         def __set__(self, val):
             self.data.NumberOfTemperatureBins = val
 
+    property grackle_molecular_data:
+         def __get__(self):
+            return self.data.grackle_molecular_data
+         def __set__(self, val):
+            if isinstance(val, str):
+                val = val.encode('utf-8')
+            self.data.grackle_molecular_data = val
+
     property CaseBRecombination:
         def __get__(self):
             return self.data.CaseBRecombination
@@ -322,6 +330,30 @@ cdef class chemistry_data:
             return self.data.H2_self_shielding
         def __set__(self, val):
             self.data.H2_self_shielding = val
+
+    property withWater:
+         def __get__(self):
+            return self.data.withWater
+         def __set__(self, val):
+            self.data.withWater = val
+
+    property water_rates:
+         def __get__(self):
+            return self.data.water_rates
+         def __set__(self, val):
+            self.data.water_rates = val
+
+    property water_only:
+         def __get__(self):
+            return self.data.water_only
+         def __set__(self, val):
+            self.data.water_only = val
+
+    property crx_ionization:
+         def __get__(self):
+            return self.data.crx_ionization
+         def __set__(self, val):
+            self.data.crx_ionization = val
 
     property k24:
         def __get__(self):
@@ -484,6 +516,33 @@ def solve_chemistry(fc, my_dt):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")
@@ -532,6 +591,33 @@ def calculate_cooling_time(fc):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")
@@ -581,6 +667,33 @@ def calculate_gamma(fc):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")
@@ -630,6 +743,33 @@ def calculate_pressure(fc):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")
@@ -679,6 +819,33 @@ def calculate_temperature(fc):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")
@@ -728,6 +895,33 @@ def calculate_dust_temperature(fc):
     my_fields.DI_density = get_field(fc, "DI")
     my_fields.DII_density = get_field(fc, "DII")
     my_fields.HDI_density = get_field(fc, "HDI")
+    my_fields.Water_density = get_field(fc, "Water_density")
+    my_fields.O_density = get_field(fc, "O_density")
+    my_fields.OH_density = get_field(fc, "OH_density")
+    my_fields.O2_density = get_field(fc, "O2_density")
+    my_fields.Oplus_density = get_field(fc, "Oplus_density")
+    my_fields.OHplus_density = get_field(fc, "OHplus_density")
+    my_fields.H2Oplus_density = get_field(fc, "H2Oplus_density")
+    my_fields.H3Oplus_density = get_field(fc, "H3Oplus_density")
+    my_fields.O2plus_density = get_field(fc, "O2plus_density")
+    my_fields.Cplus_density = get_field(fc, "Cplus_density")
+    my_fields.C_density = get_field(fc, "C_density")
+    my_fields.CH_density = get_field(fc, "CH_density")
+    my_fields.CH2_density = get_field(fc, "CH2_density")
+    my_fields.CH3_density = get_field(fc, "CH3_density")
+    my_fields.CH4_density = get_field(fc, "CH4_density")
+    my_fields.CO_density = get_field(fc, "CO_density")
+    my_fields.COplus_density = get_field(fc, "COplus_density")
+    my_fields.CO2_density = get_field(fc, "CO2_density")
+    my_fields.CHplus_density = get_field(fc, "CHplus_density")
+    my_fields.CH2plus_density = get_field(fc, "CH2plus_density")
+    my_fields.H3plus_density = get_field(fc, "H3plus_density")
+    my_fields.HCOplus_density = get_field(fc, "HCOplus_density")
+    my_fields.HeHplus_density = get_field(fc, "HeHplus_density")
+    my_fields.CH3plus_density = get_field(fc, "CH3plus_density")
+    my_fields.CH4plus_density = get_field(fc, "CH4plus_density")
+    my_fields.CH5plus_density = get_field(fc, "CH5plus_density")
+    my_fields.O2Hplus_density = get_field(fc, "O2Hplus_density")
     my_fields.e_density = get_field(fc, "de")
     my_fields.metal_density = get_field(fc, "metal")
     my_fields.dust_density = get_field(fc, "dust")

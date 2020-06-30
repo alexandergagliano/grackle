@@ -43,6 +43,13 @@ _fluid_names[2] = _fluid_names[1] + \
 _fluid_names[3] = _fluid_names[2] + \
   ["DI", "DII", "HDI"]
 
+_water_names = \
+  ["Water_density", "O_density", "OH_density", "O2_density", "Oplus_density", "OHplus_density", "H2Oplus_density", "H3Oplus_density", "O2plus_density", "Cplus_density", "C_density", "CH_density", "CH2_density", "CH3_density", "CH4_density", "CO_density", "COplus_density", "CO2_density"]
+
+_bialy_names = \
+["CHplus_density", "CH2plus_density", "H3plus_density", "HCOplus_density", "HeHplus_density", "CH3plus_density", "CH4plus_density", "CH5plus_density", "O2Hplus_density"]
+
+
 _rad_trans_names = ['RT_heating_rate', 'RT_HI_ionization_rate',
                     'RT_HeI_ionization_rate', 'RT_HeII_ionization_rate',
                     'RT_H2_dissociation_rate']
@@ -65,7 +72,15 @@ class FluidContainer(dict):
         if self.chemistry_data.use_radiative_transfer:
             for fluid in _rad_trans_names:
                 self._setup_fluid(fluid)
-
+#Set up number density of hydrogen as well!
+        self._setup_fluid("n_H")
+        if self.chemistry_data.withWater:
+            if (self.chemistry_data.water_rates == 3):
+                for fluid in (_water_names + _bialy_names):
+                   self._setup_fluid(fluid)
+            else:
+                for fluid in _water_names:
+                   self._setup_fluid(fluid)
         for htype in ["specific", "volumetric"]:
             if getattr(self.chemistry_data, "use_%s_heating_rate" % htype, 0):
                 self._setup_fluid("%s_heating_rate" % htype)
@@ -85,6 +100,16 @@ class FluidContainer(dict):
     def density_fields(self):
         return _fluid_names[self.chemistry_data.primordial_chemistry]
 
+    @property
+    def n_density_fields(self):
+        if self.chemistry_data.withWater:
+            if (self.chemistry_data.water_rates == 3):
+               return _water_names + _bialy_names
+            else:
+               return _water_names
+        else:
+            return []
+
     def calculate_hydrogen_number_density(self):
         my_chemistry = self.chemistry_data
         if my_chemistry.primordial_chemistry == 0:
@@ -97,6 +122,22 @@ class FluidContainer(dict):
         if my_chemistry.primordial_chemistry > 2:
             nH += self["HDI"] / 2.
         self["nH"] = nH * my_chemistry.density_units / mass_hydrogen_cgs
+
+    def calculate_metallicity(self):
+        my_chemistry = self.chemistry_data
+        if my_chemistry.withWater == 0:
+            return 0
+        metal_density = 16.0*self["O_density"] + 17.0*self["OH_density"] + 18.0*self["Water_density"] + \
+                32.0*self["O2_density"] + 16.0*self["Oplus_density"] + 17.0*self["OHplus_density"] + \
+                18.0*self["H2Oplus_density"] + 19.0*self["H3Oplus_density"] + 32.0*self["O2plus_density"] + \
+                12.0*self["Cplus_density"] + 12.0*self["C_density"] + 13.0*self["CH_density"] + \
+                14.0*self["CH2_density"] + 15.0*self["CH3_density"] + 16.0*self["CH4_density"] + \
+                28.0*self["CO_density"] + 28.0*self["COplus_density"] + 44.0*self["CO2_density"]
+        if my_chemistry.water_rates == 3:
+                metal_density += 13.0*self["CHplus_density"] + 14.0*self["CH2plus_density"] + \
+                29.0*self["HCOplus_density"] + 15.0*self["CH3plus_density"]
+
+        return (metal_density / (self["density"] * my_chemistry.density_units))
 
     def calculate_mean_molecular_weight(self):
         # If energy has been set, calculate mu from the energy

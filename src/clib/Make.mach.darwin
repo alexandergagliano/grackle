@@ -53,7 +53,8 @@ MACH_FC_NOMPI  = gfortran # Fortran 77 compiler when not using MPI
 MACH_F90_NOMPI = gfortran # Fortran 90 compiler when not using MPI
 MACH_LD_NOMPI  = gcc # Linker when not using MPI
 
-MACH_LIBTOOL   = glibtool
+#MACH_LIBTOOL   = glibtool
+MACH_LIBTOOL   = /usr/local/bin/glibtool
 
 #-----------------------------------------------------------------------
 # Machine-dependent defines
@@ -75,7 +76,7 @@ MACH_CFLAGS   =
 MACH_CXXFLAGS =
 MACH_FFLAGS   = -fno-second-underscore -m64
 MACH_F90FLAGS = -fno-second-underscore -m64
-MACH_LDFLAGS  = 
+#MACH_LDFLAGS  =  -lm -lgsl -lgslcblas -lgfortran
 
 #-----------------------------------------------------------------------
 # Optimization flags

@@ -1064,6 +1064,10 @@ c  new (correct) way: (april 4, 2007)
         endif
 
 !     --- Cloudy metal cooling and heating ---
+! Alex Gagliano, 04/27 - Implement cooling routine here!
+! TODO - plug in water_cooling routines. How does a
+! Fortran routine call a c routine?
+! Will plug in cooling lines for H2O, CO, CI, CII, and OI.
 
       if (imcool .eq. 1) then
 

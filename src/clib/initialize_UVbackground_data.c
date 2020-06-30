@@ -313,6 +313,341 @@ int initialize_UVbackground_data(chemistry_data *my_chemistry,
               my_chemistry->UVbackground_redshift_off);
   }
 
+  /**********************************************************************/
+  /* Adding skeleton for molecular chemistry! We'll use this in rates.c */
+  /**********************************************************************/
+    long long Nz_molec;
+
+  // Return if no UV background selected or if water network is off
+  if (my_chemistry->UVbackground == 0 ||
+      my_chemistry->withWater == 0 || my_chemistry->water_only == 1)
+    return SUCCESS;
+
+
+  if (grackle_verbose)
+    fprintf(stdout, "Initializing UV molecular rates.\n");
+
+
+  // Read in UV molecular rates from hdf5 file.
+
+  if (grackle_verbose)
+    fprintf(stdout, "Reading UV molecular rates from %s.\n",
+            my_chemistry->grackle_molecular_data);
+  file_id = H5Fopen(my_chemistry->grackle_molecular_data,
+                    H5F_ACC_RDONLY, H5P_DEFAULT);
+
+
+  // Open redshift dataset and get number of elements
+
+  dset_id =  H5Dopen(file_id, "z");
+  if (dset_id == h5_error) {
+    fprintf(stderr, "Can't open redshift dataset ('z') in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  dspace_id = H5Dget_space(dset_id);
+  if (dspace_id == h5_error) {
+    fprintf(stderr, "Error opening dataspace for dataset 'z' in %s.\n",
+            my_chemistry->grackle_data_file);
+    return FAIL;
+  }
+
+  Nz_molec = 60;
+
+  H5Sclose(dspace_id);
+  H5Dclose(dset_id);
+
+  // Now allocate memory for UV background table.
+  my_rates->UVbackground_table.Nz_molec = Nz_molec;
+
+  my_rates->UVbackground_table.z_molec = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV1 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV2 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV3 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV4 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV5 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV6 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV7 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV8 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV9 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV10 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV11 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV12 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV13 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV14 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV15 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV16 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV17 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV18 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV19 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV20 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV21 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV22 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV23 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV24 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV25 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV26 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV34 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV37 = malloc(Nz_molec * sizeof(double));
+  my_rates->UVbackground_table.UV38 = malloc(Nz_molec * sizeof(double));
+
+  // Now read everything.
+
+  // *** Redshift ***
+  if(! read_dataset(file_id, "z",
+                    my_rates->UVbackground_table.z_molec) ) {
+    fprintf(stderr, "Error reading dataset 'z' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV1 ***
+  if(! read_dataset(file_id, "/UV1",
+                    my_rates->UVbackground_table.UV1) ) {
+    fprintf(stderr, "Error reading dataset '/UV1' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+    // *** UV2 ***
+  if(! read_dataset(file_id, "/UV2",
+                    my_rates->UVbackground_table.UV2) ) {
+    fprintf(stderr, "Error reading dataset '/UV2' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV3 ***
+  if(! read_dataset(file_id, "/UV3",
+                    my_rates->UVbackground_table.UV3) ) {
+    fprintf(stderr, "Error reading dataset '/UV3' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV4 ***
+  if(! read_dataset(file_id, "/UV4",
+                    my_rates->UVbackground_table.UV4) ) {
+    fprintf(stderr, "Error reading dataset '/UV4' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV5 ***
+  if(! read_dataset(file_id, "/UV5",
+                    my_rates->UVbackground_table.UV5) ) {
+    fprintf(stderr, "Error reading dataset '/UV5' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV6 ***
+  if(! read_dataset(file_id, "/UV6",
+                    my_rates->UVbackground_table.UV6) ) {
+    fprintf(stderr, "Error reading dataset '/UV6' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV7 ***
+  if(! read_dataset(file_id, "/UV7",
+                    my_rates->UVbackground_table.UV7) ) {
+    fprintf(stderr, "Error reading dataset '/UV7' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV8 ***
+  if(! read_dataset(file_id, "/UV8",
+                    my_rates->UVbackground_table.UV8) ) {
+    fprintf(stderr, "Error reading dataset '/UV8' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV9 ***
+  if(! read_dataset(file_id, "/UV9",
+                    my_rates->UVbackground_table.UV9) ) {
+    fprintf(stderr, "Error reading dataset '/UV9' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV10 ***
+  if(! read_dataset(file_id, "/UV10",
+                    my_rates->UVbackground_table.UV10) ) {
+    fprintf(stderr, "Error reading dataset '/UV10' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV11 ***
+  if(! read_dataset(file_id, "/UV11",
+                    my_rates->UVbackground_table.UV11) ) {
+    fprintf(stderr, "Error reading dataset '/UV11' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV12 ***
+  if(! read_dataset(file_id, "/UV12",
+                    my_rates->UVbackground_table.UV12) ) {
+    fprintf(stderr, "Error reading dataset '/UV12' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV13 ***
+  if(! read_dataset(file_id, "/UV13",
+                    my_rates->UVbackground_table.UV13) ) {
+    fprintf(stderr, "Error reading dataset '/UV13' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV14 ***
+  if(! read_dataset(file_id, "/UV14",
+                    my_rates->UVbackground_table.UV14) ) {
+    fprintf(stderr, "Error reading dataset '/UV14' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV15 ***
+  if(! read_dataset(file_id, "/UV15",
+                    my_rates->UVbackground_table.UV15) ) {
+    fprintf(stderr, "Error reading dataset '/UV15' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV16 ***
+  if(! read_dataset(file_id, "/UV16",
+                    my_rates->UVbackground_table.UV16) ) {
+    fprintf(stderr, "Error reading dataset '/UV16' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV17 ***
+  if(! read_dataset(file_id, "/UV17",
+                    my_rates->UVbackground_table.UV17) ) {
+    fprintf(stderr, "Error reading dataset '/UV17' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV18 ***
+  if(! read_dataset(file_id, "/UV18",
+                    my_rates->UVbackground_table.UV18) ) {
+    fprintf(stderr, "Error reading dataset '/UV18' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV19 ***
+  if(! read_dataset(file_id, "/UV19",
+                    my_rates->UVbackground_table.UV19) ) {
+    fprintf(stderr, "Error reading dataset '/UV19' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV20 ***
+  if(! read_dataset(file_id, "/UV20",
+                    my_rates->UVbackground_table.UV20) ) {
+    fprintf(stderr, "Error reading dataset '/UV20' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV21 ***
+  if(! read_dataset(file_id, "/UV21",
+                    my_rates->UVbackground_table.UV21) ) {
+    fprintf(stderr, "Error reading dataset '/UV21' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV22 ***
+  if(! read_dataset(file_id, "/UV22",
+                    my_rates->UVbackground_table.UV22) ) {
+    fprintf(stderr, "Error reading dataset '/UV22' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV23 ***
+  if(! read_dataset(file_id, "/UV23",
+                    my_rates->UVbackground_table.UV23) ) {
+    fprintf(stderr, "Error reading dataset '/UV23' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV24 ***
+  if(! read_dataset(file_id, "/UV24",
+                    my_rates->UVbackground_table.UV24) ) {
+    fprintf(stderr, "Error reading dataset '/UV24' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV25 ***
+  if(! read_dataset(file_id, "/UV25",
+                    my_rates->UVbackground_table.UV25) ) {
+    fprintf(stderr, "Error reading dataset '/UV25' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV26 ***
+  if(! read_dataset(file_id, "/UV26",
+                    my_rates->UVbackground_table.UV26) ) {
+    fprintf(stderr, "Error reading dataset '/UV26' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV34 ***
+  if(! read_dataset(file_id, "/UV34",
+                    my_rates->UVbackground_table.UV34) ) {
+    fprintf(stderr, "Error reading dataset '/UV34' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV37 ***
+  if(! read_dataset(file_id, "/UV37",
+                    my_rates->UVbackground_table.UV37) ) {
+    fprintf(stderr, "Error reading dataset '/UV37' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  // *** UV38 ***
+  if(! read_dataset(file_id, "/UV38",
+                    my_rates->UVbackground_table.UV38) ) {
+    fprintf(stderr, "Error reading dataset '/UV38' in %s.\n",
+            my_chemistry->grackle_molecular_data);
+    return FAIL;
+  }
+
+  H5Fclose(file_id);
+
+  // Get min/max of redshift vector
+  my_rates->UVbackground_table.zmin_molec = my_rates->UVbackground_table.z_molec[0];
+  my_rates->UVbackground_table.zmax_molec = my_rates->UVbackground_table.z_molec[Nz_molec-1];
+
+  // Print out some information about the dataset just read in.
+  if (grackle_verbose) {
+    fprintf(stdout, "UV molecular rates information:\n");
+    fprintf(stdout, "  z_min = %6.3f\n  z_max = %6.3f\n",
+            my_rates->UVbackground_table.zmin_molec,
+            my_rates->UVbackground_table.zmax_molec);
+  }
+
   return SUCCESS;
 }
 

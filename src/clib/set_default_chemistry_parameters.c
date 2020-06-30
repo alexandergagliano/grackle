@@ -117,6 +117,18 @@ chemistry_data _set_default_chemistry_parameters(void)
   my_chemistry.self_shielding_method                  = 0;
   my_chemistry.H2_self_shielding                      = 0;
 
+  /* switch for Omukai's 2005 water network */
+  my_chemistry.withWater                              = 0;
+
+  /* switch for Omukai's 2005 water network */
+  my_chemistry.water_rates                            = 3;
+
+  /* switch to use only water network */
+  my_chemistry.water_only                             = 0;
+
+  my_chemistry.crx_ionization                         = 0; // options are 0, 1, 2, 3
+  my_chemistry.grackle_molecular_data                 = "";
+
 //number of OpenMP threads
 # ifdef _OPENMP
   my_chemistry.omp_nthreads = omp_get_max_threads(); // maximum allowed number
