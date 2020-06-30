@@ -43,6 +43,7 @@ OBJS_CONFIG_LIB = \
         initialize_cloudy_data.lo \
         initialize_UVbackground_data.lo \
         interpolators_g.lo \
+        jac_rhs.lo \
         jac_rhs_builder.lo \
         linalg.lo \
         rates.lo \
