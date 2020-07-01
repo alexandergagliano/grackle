@@ -609,7 +609,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   }
 
                   scale = C_num_pre/C_num_post;
-                 if (abs(scale - 1.0) > 0.1){
+                 if (abs(scale - 1.0) > 1.e-4){
 
                   Y[C]      *= scale;
                   Y[Cplus]  *= scale;
