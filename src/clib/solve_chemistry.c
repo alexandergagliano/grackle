@@ -609,7 +609,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   }
 
                   scale = C_num_pre/C_num_post;
-                 if (abs(scale - 1.0) > 1.e-4){
+                 if (abs(scale - 1.0) > 0.1){
 
                   Y[C]      *= scale;
                   Y[Cplus]  *= scale;
@@ -682,7 +682,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                      metl_frac = metal_cgs/sum_metl * metal_frac;
                     //printf("percent diff in metal is %.2f\n", metl_frac-1.0);
 
-                    if (abs(metl_frac - 1.0) >= 0.01){
+                    if (abs(metl_frac - 1.0) >= 1.e-4){
 
                      Y[O]       *= metl_frac;
                      Y[OH]      *= metl_frac;
