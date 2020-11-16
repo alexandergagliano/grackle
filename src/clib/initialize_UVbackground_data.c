@@ -319,10 +319,9 @@ int initialize_UVbackground_data(chemistry_data *my_chemistry,
     long long Nz_molec;
 
   // Return if no UV background selected or if water network is off
-  if (my_chemistry->UVbackground == 0 ||
+  if (my_chemistry->UVbackground_molec_redshift_on == 0 ||
       my_chemistry->withWater == 0 || my_chemistry->water_only == 1)
     return SUCCESS;
-
 
   if (grackle_verbose)
     fprintf(stdout, "Initializing UV molecular rates.\n");

@@ -128,6 +128,7 @@ chemistry_data _set_default_chemistry_parameters(void)
 
   my_chemistry.crx_ionization                         = 0; // options are 0, 1, 2, 3
   my_chemistry.grackle_molecular_data                 = "";
+  my_chemistry.UVbackground_molec_redshift_on         = 0;
 
 //number of OpenMP threads
 # ifdef _OPENMP

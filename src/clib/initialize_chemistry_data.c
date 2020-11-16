@@ -332,6 +332,7 @@ int _initialize_chemistry_data(chemistry_data *my_chemistry,
   my_rates->UVbackground_table.crsHeI = NULL;
 
   /* Adding 31 fields for reading of molecular UV rates */
+  if (my_chemistry->UVbackground_molec_redshift_on){
   my_rates->UVbackground_table.Nz_molec     = 0;
   my_rates->UVbackground_table.z_molec      = NULL;
   my_rates->UVbackground_table.UV1    = NULL;
@@ -363,6 +364,7 @@ int _initialize_chemistry_data(chemistry_data *my_chemistry,
   my_rates->UVbackground_table.UV34   = NULL;
   my_rates->UVbackground_table.UV37   = NULL;
   my_rates->UVbackground_table.UV38   = NULL;
+}
 
   if (initialize_UVbackground_data(my_chemistry, my_rates) == FAIL) {
     fprintf(stderr, "Error in initialize_UVbackground_data.\n");
@@ -530,6 +532,8 @@ void show_parameters(FILE *fp, chemistry_data *my_chemistry)
           my_chemistry->crx_ionization);
   fprintf(fp, "grackle_molecular_data            = %s\n",
           my_chemistry->grackle_molecular_data);
+  fprintf(fp, "UVbackground_molec_redshift_on    = %d\n",
+          my_chemistry->UVbackground_molec_redshift_on);
   fprintf(fp, "water_only                        = %d\n",
           my_chemistry->water_only);
 # ifdef _OPENMP
@@ -571,7 +575,10 @@ int _free_chemistry_data(chemistry_data *my_chemistry,
     GRACKLE_FREE(my_rates->GAHp);
     GRACKLE_FREE(my_rates->GAel);
     GRACKLE_FREE(my_rates->H2LTE);
-    GRACKLE_FREE(my_rates->gas_grain);
+    if (my_chemistry->h2_on_dust > 0 || my_chemistry->dust_chemistry > 0) {
+       GRACKLE_FREE(my_rates->gas_grain);
+       GRACKLE_FREE(my_rates->regr);
+    }
 
     GRACKLE_FREE(my_rates->k1);
     GRACKLE_FREE(my_rates->k2);
@@ -639,5 +646,39 @@ int _free_chemistry_data(chemistry_data *my_chemistry,
     GRACKLE_FREE(my_rates->UVbackground_table.crsHeII);
     GRACKLE_FREE(my_rates->UVbackground_table.crsHeI);
   }
+  if (my_chemistry->UVbackground_molec_redshift_on ==1 &&
+      my_chemistry->withWater == 1 && my_chemistry->water_only == 0){
+    GRACKLE_FREE(my_rates->UVbackground_table.z_molec);
 
+    GRACKLE_FREE(my_rates->UVbackground_table.UV1);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV2);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV3);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV4);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV5);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV6);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV7);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV8);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV9);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV10);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV11);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV12);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV13);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV14);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV15);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV16);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV17);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV18);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV19);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV20);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV21);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV22);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV23);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV24);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV25);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV26);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV34);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV37);
+    GRACKLE_FREE(my_rates->UVbackground_table.UV38);
+
+  }
 }

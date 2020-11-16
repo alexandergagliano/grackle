@@ -18,12 +18,14 @@ int forward_euler_integrate(double *r,double *Y,double dt,int ispecies,double UV
   // Since nSpecies never changes, we will never need to reallocate memory. We'll do the dirty
   // thing of never releasing the memory and just crossing our fingers that the OS will take
   // care of it.
-  static double *rhs;
-  static int first = 1;
-  if(first){
-    rhs = (double*)malloc(nSpecies * sizeof(double));
-    first = 0;
-  }
+  //static double *rhs;
+  double *rhs;
+  //removing this stuff for now
+  //static int first = 1;
+  //if(first){
+  rhs = (double*)malloc(nSpecies * sizeof(double));
+  //  first = 0;
+  //}
 
   // Initialize our right-hand side.
   memset(rhs,0,nSpecies*sizeof(double));
@@ -36,6 +38,9 @@ int forward_euler_integrate(double *r,double *Y,double dt,int ispecies,double UV
     Y[i] = Y[i] + dt*rhs[i];
   }
 
+  //adding in a free manually for now
+  //
+  free(rhs);
   // I don't immediately know of any reason this method should fail, so it always returns success.
   // If someone else sees a glaring omission, they can add some failure case.
   return ALLOK;

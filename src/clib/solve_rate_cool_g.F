@@ -535,17 +535,16 @@ c      chunit = (7.17775e-12_DKIND)/(2._DKIND*uvel*uvel*mh)   ! 4.5 eV per H2 fo
 !         (maybe should add itmask to this call)
 
             call lookup_cool_rates1d_g(temstart, temend, nratec, j, k,
-     &               is, ie, ithreebody,
-     &               in, jn, kn, ispecies, anydust,
-     &               iH2shield, iradshield,
+     &               is, ie, ithreebody, in, jn, kn, 
+     &               ispecies, anydust, iH2shield, iradshield,
      &               tgas, mmw, d, HI, HII, HeI, HeII, HeIII, 
      &               HM, H2I, H2II, DI, DII, HDI,
-     &               tdust, dust2gas,
+     &               tdust, dust2gas, iwater, wrates, metallicity,
      &               k1a, k2a, k3a, k4a, k5a, k6a, k7a, k8a, k9a, k10a,
      &               k11a, k12a, k13a, k13dda, k14a, k15a, k16a,
      &               k17a, k18a, k19a, k22a,
-     &               k50a, k51a, k52a, k53a, k54a, k55a, k56a, 
-     &               k57a, k58a, ndratec, dtemstart, dtemend, h2dusta, 
+     &               k50a, k51a, k52a, k53a, k54a, k55a, k56a, k57a,
+     &               k58a, ndratec, dtemstart, dtemend, h2dusta, 
      &               ncrna, ncrd1a, ncrd2a, 
      &               avgsighi, avgsighei, avgsigheii, piHI, piHeI,
      &               k1, k2, k3, k4, k5, k6, k7, k8, k9, k10,
@@ -553,8 +552,8 @@ c      chunit = (7.17775e-12_DKIND)/(2._DKIND*uvel*uvel*mh)   ! 4.5 eV per H2 fo
      &               k19, k22, k24, k25, k26, k28, k29, k30, k31,
      &               k50, k51, k52, k53, k54, k55, k56, k57,
      &               k58, k13dd, k24shield, k25shield, k26shield,
-     &               k28shield, k29shield, k30shield,
-     &               k31shield, h2dust, ncrn, ncrd1, ncrd2, 
+     &               k28shield, k29shield, k30shield, k31shield,
+     &               h2dust, ncrn, ncrd1, ncrd2, 
      &               t1, t2, tdef, logtem, indixe, 
      &               dom, coolunit, tbase1, xbase1, dx_cgs, c_ljeans,
      &               iradtrans, kdissH2I, xH2shield, itmask)
@@ -1127,7 +1126,7 @@ c -------------------------------------------------------------------
      &                ispecies, anydust, iH2shield, iradshield,
      &                tgas1d, mmw, d, HI, HII, HeI, HeII, HeIII,
      &                HM, H2I, H2II, DI, DII, HDI,
-     &                tdust, dust2gas,
+     &                tdust, dust2gas, iwater, wrates, metallicity,
      &                k1a, k2a, k3a, k4a, k5a, k6a, k7a, k8a, k9a, k10a,
      &                k11a, k12a, k13a, k13dda, k14a, k15a, k16a,
      &                k17a, k18a, k19a, k22a,
@@ -1152,11 +1151,11 @@ c -------------------------------------------------------------------
 
 !     Arguments
 
-      integer is, ie, nratec,
+      integer is, ie, nratec, iwater, wrates,
      &        in, jn, kn, ispecies, ithreebody, j, k,
      &        ndratec, iH2shield, iradshield, iradtrans
       real*8 temstart, temend, tgas1d(in), mmw(in), dom,
-     &       dtemstart, dtemend
+     &       dtemstart, dtemend, metallicity(in)
       real*8 coolunit, tbase1, xbase1, dx_cgs, c_ljeans
       logical itmask(in), anydust
 
@@ -1406,8 +1405,11 @@ c -------------------------------------------------------------------
 
 !                 Multiply by dust to gas ratio
 
-                  h2dust(i) = h2dust(i) * dust2gas(i)
-
+                  if ((iwater .eq. 1) .and. (wrates .eq. 1)) then
+                     h2dust(i) = h2dust(i) * metallicity(i)
+                  else
+                     h2dust(i) = h2dust(i) * dust2gas(i)
+                  endif
                endif
             endif
          enddo
@@ -2416,7 +2418,10 @@ c
                 if (wrates .eq. 3) de(i,j,k) = de(i,j,k) +
      &               HCOplus(i,j,k)/29._RKIND +
      &               HeHplus(i,j,k)/5._RKIND +
-     &               CH3plus(i,j,k)/15._RKIND
+     &               CH3plus(i,j,k)/15._RKIND +
+     &               CH4plus(i,j,k)/16._RKIND + 
+     &               CH5plus(i,j,k)/17._RKIND + 
+     &               O2Hplus(i,j,k)/33._RKIND
          endif
 
          dedot_prev(i) = abs(de(i,j,k)-dedot_prev(i))/
@@ -2594,7 +2599,10 @@ c
                if (wrates .eq. 3) de (i,j,k) = de(i,j,k) +
      &               HCOplus(i,j,k)/29._RKIND +
      &               HeHplus(i,j,k)/5._RKIND +
-     &               CH3plus(i,j,k)/15._RKIND
+     &               CH3plus(i,j,k)/15._RKIND +
+     &               CH4plus(i,j,k)/16._RKIND + 
+     &               CH5plus(i,j,k)/17._RKIND + 
+     &               O2Hplus(i,j,k)/33._RKIND
       endif
 
       enddo

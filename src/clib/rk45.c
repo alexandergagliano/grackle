@@ -161,12 +161,15 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
 
   // RHS and initialize to zero
   double rmax = 2; double rmin = 0.2;
-  static double *dydt; // RHS (dY/dt)
+  //static double *dydt; // RHS (dY/dt)
+  double *dydt;
 
-  static first = 1;
-  static double *k1, *k2, *k3, *k4, *k5, *k6, *Y0, *Y4, *Y5;
+  //static first = 1;
+  //static double *k1, *k2, *k3, *k4, *k5, *k6, *Y0, *Y4, *Y5;
+  double *k1, *k2, *k3, *k4, *k5, *k6, *Y0, *Y4, *Y5;
+
   // k1, k2, k3, k4, k5 and k6 or the cash-carp method - intermediate solutions
-  if(first){
+ // if(first){
     dydt = (double*) malloc(nSpecies * sizeof(double));
     k1 = (double*) malloc(nSpecies*sizeof(double));
     k2 = (double*) malloc(nSpecies*sizeof(double));
@@ -177,7 +180,7 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
     Y0 = (double*) malloc(nSpecies*sizeof(double));
     Y4 = (double*) malloc(nSpecies*sizeof(double));
     Y5 = (double*) malloc(nSpecies*sizeof(double));
-  }
+ // }
   memset(dydt, 0., nSpecies*sizeof(double*));
 
   // entry abundances Y0, 4th order solution Y4 and 5th order solution Y5

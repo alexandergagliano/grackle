@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   *********************************************************************/
 
   // Set initial redshift (for internal units).
-  double initial_redshift = 0.;
+  double initial_redshift = 3.;
 
   // Enable output
   grackle_verbose = 1;
@@ -63,11 +63,73 @@ int main(int argc, char *argv[])
   grackle_data->use_grackle = 1;            // chemistry on
   grackle_data->use_isrf_field = 1;
   grackle_data->with_radiative_cooling = 1; // cooling on
-  grackle_data->primordial_chemistry = 3;   // molecular network with H, He, D
+  grackle_data->primordial_chemistry = 2;   // molecular network with H, He, D
   grackle_data->dust_chemistry = 1;
   grackle_data->metal_cooling = 1;          // metal cooling on
   grackle_data->UVbackground = 1;           // UV background on
-  grackle_data->grackle_data_file = "../../input/CloudyData_UVB=HM2012.h5"; // data file
+  grackle_data->h2_on_dust = 1;
+  grackle_data->grackle_data_file = "../../input/CloudyData_UVB=HM2012_shielded.h5"; // data file
+  grackle_data->cmb_temperature_floor = 1;
+  grackle_data->Gamma = 1.6667;
+  grackle_data->use_dust_density_field            = 0;
+
+  grackle_data->use_isrf_field                    = 0;
+  grackle_data->interstellar_radiation_field      = 1.7;
+  grackle_data->use_volumetric_heating_rate       = 0;
+  grackle_data->use_specific_heating_rate         = 0;
+  grackle_data->three_body_rate                   = 0;
+  grackle_data->cie_cooling                       = 0;
+  grackle_data->h2_optical_depth_approximation    = 0;
+  grackle_data->ih2co                             = 1;
+  grackle_data->ipiht                             = 1;
+  grackle_data->HydrogenFractionByMass            = 0.76;
+  grackle_data->DeuteriumToHydrogenRatio          = 6.8e-05;
+  grackle_data->SolarMetalFractionByMass          = 0.01295;
+  grackle_data->local_dust_to_gas_ratio           = 0.009387;
+  grackle_data->LWbackground_sawtooth_suppression = 0;
+  grackle_data->LWbackground_intensity            = 0;
+  grackle_data->cloudy_electron_fraction_factor   = 0.00915396;
+  grackle_data->use_radiative_transfer            = 1;
+  grackle_data->radiative_transfer_coupled_rate_solver = 0;
+  grackle_data->radiative_transfer_intermediate_step = 0;
+  grackle_data->radiative_transfer_hydrogen_only  = 0;
+
+  //testing waternet
+  grackle_data->withWater = 1;
+  grackle_data->water_only = 0;
+  grackle_data->water_rates = 3;
+  grackle_data->crx_ionization = 1;
+  grackle_data->grackle_molecular_data = "/lustre/scratch3/turquoise/agagliano/WATER/summer2020/fromSky/grackle/input/UVB_HM2012_waterNetwork.h5";
+
+  grackle_data->photoelectric_heating             = 0;
+  grackle_data->photoelectric_heating_rate        = 8.5e-26;
+  grackle_data->use_volumetric_heating_rate       = 0;
+  grackle_data->use_specific_heating_rate         = 0;
+  grackle_data->three_body_rate                   = 0;
+  grackle_data->cie_cooling                       = 0;
+  grackle_data->h2_optical_depth_approximation    = 0;
+  grackle_data->ih2co                             = 1;
+  grackle_data->ipiht                             = 1;
+  grackle_data->HydrogenFractionByMass            = 0.76;
+  grackle_data->DeuteriumToHydrogenRatio          = 6.8e-05;
+  grackle_data->SolarMetalFractionByMass          = 0.01295;
+  grackle_data->local_dust_to_gas_ratio           = 0.009387;
+  grackle_data->NumberOfTemperatureBins           = 600;
+  grackle_data->CaseBRecombination                = 0;
+  grackle_data->TemperatureStart                  = 1;
+  grackle_data->TemperatureEnd                    = 1e+09;
+  grackle_data->NumberOfDustTemperatureBins       = 250;
+  grackle_data->DustTemperatureStart              = 1;
+  grackle_data->DustTemperatureEnd                = 1500;
+  grackle_data->Compton_xray_heating              = 0;
+  grackle_data->UVbackground_redshift_on          = 7;
+  grackle_data->UVbackground_redshift_off         = 0;
+  grackle_data->UVbackground_redshift_fullon      = 6;
+  grackle_data->UVbackground_redshift_drop        = 0;
+  grackle_data->cloudy_electron_fraction_factor   = 0.00915396;
+  grackle_data->use_radiative_transfer            = 1;
+
+  grackle_data->H2_self_shielding = 1;
 
   // Finally, initialize the chemistry object.
   if (initialize_chemistry_data(&my_units) == 0) {
@@ -119,6 +181,34 @@ int main(int argc, char *argv[])
   // for metal_cooling = 1
   my_fields.metal_density   = new gr_float[field_size];
 
+  my_fields.Water_density     = new gr_float[field_size];
+  my_fields.O_density         = new gr_float[field_size];
+  my_fields.OH_density        = new gr_float[field_size];
+  my_fields.O2_density        = new gr_float[field_size];
+  my_fields.Oplus_density     = new gr_float[field_size];
+  my_fields.OHplus_density    = new gr_float[field_size];
+  my_fields.H2Oplus_density   = new gr_float[field_size];
+  my_fields.H3Oplus_density   = new gr_float[field_size];
+  my_fields.O2plus_density    = new gr_float[field_size];
+  my_fields.Cplus_density     = new gr_float[field_size];
+  my_fields.C_density         = new gr_float[field_size];
+  my_fields.CH_density        = new gr_float[field_size];
+  my_fields.CH2_density       = new gr_float[field_size];
+  my_fields.CH3_density       = new gr_float[field_size];
+  my_fields.CH4_density       = new gr_float[field_size];
+  my_fields.CO_density        = new gr_float[field_size];
+  my_fields.COplus_density    = new gr_float[field_size];
+  my_fields.CO2_density       = new gr_float[field_size];
+  my_fields.CHplus_density    = new gr_float[field_size];
+  my_fields.CH2plus_density   = new gr_float[field_size];
+  my_fields.H3plus_density    = new gr_float[field_size];
+  my_fields.HCOplus_density   = new gr_float[field_size];
+  my_fields.HeHplus_density   = new gr_float[field_size];
+  my_fields.CH3plus_density   = new gr_float[field_size];
+  my_fields.CH4plus_density   = new gr_float[field_size];
+  my_fields.CH5plus_density   = new gr_float[field_size];
+  my_fields.O2Hplus_density   = new gr_float[field_size];
+
   // volumetric heating rate (provide in units [erg s^-1 cm^-3])
   my_fields.volumetric_heating_rate = new gr_float[field_size];
   // specific heating rate (provide in units [egs s^-1 g^-1]
@@ -129,7 +219,7 @@ int main(int argc, char *argv[])
   my_fields.RT_HeI_ionization_rate = new gr_float[field_size];
   my_fields.RT_HeII_ionization_rate = new gr_float[field_size];
   my_fields.RT_H2_dissociation_rate = new gr_float[field_size];
-  // radiative transfer heating rate (provide in units [erg s^-1 cm^-3])
+  // radiative transfer heating rate (provide in units [erg s^-3 cm^-3])
   my_fields.RT_heating_rate = new gr_float[field_size];
 
   // interstellar radiation field strength
@@ -178,6 +268,34 @@ int main(int argc, char *argv[])
     my_fields.RT_heating_rate[i] = 0.0;
 
     my_fields.isrf_habing[i] = grackle_data->interstellar_radiation_field;
+
+    my_fields.Water_density[i] = tiny_number * my_fields.density[i];
+    my_fields.O_density[i] = tiny_number * my_fields.density[i];
+    my_fields.OH_density[i] = tiny_number * my_fields.density[i];
+    my_fields.O2_density[i] = tiny_number * my_fields.density[i];
+    my_fields.Oplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.OHplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.H2Oplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.H3Oplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.O2plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.Cplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.C_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH2_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH3_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH4_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CO_density[i] = tiny_number * my_fields.density[i];
+    my_fields.COplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CO2_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CHplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH2plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.H3plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.HCOplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.HeHplus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH3plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH4plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.CH5plus_density[i] = tiny_number * my_fields.density[i];
+    my_fields.O2Hplus_density[i] = tiny_number * my_fields.density[i];
   }
 
   /*********************************************************************

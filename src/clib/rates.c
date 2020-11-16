@@ -234,7 +234,7 @@ double calc_H4(double alpha[], double nH, double temp){
       return gamma;
 }
 
-int get_rates(int water_rates, double *rate, double temp, double n, double t_dust, double Z, double UV, int CRX, code_units *my_units, int ispecies, double Y[], int H2_shield, double crsHI, double k24, int water_only, chemistry_data_storage *my_rates) 
+int get_rates(int water_rates, double *rate, double temp, double n, double t_dust, double Z, double UV, int UVbackground_molec_redshift_on, int CRX, code_units *my_units, int ispecies, double Y[], int H2_shield, double crsHI, double k24, int water_only, chemistry_data_storage *my_rates) 
 {
   double uxyz = my_units->length_units; 
   double utim = my_units->time_units;
@@ -249,7 +249,7 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
 //================================================================================================//
 
   // DEBUGGING TEMPERATURE FOR NOW
-  if (water_only){temp = 100.0;}
+  //if (water_only){temp = 100.0;}
 
   double Tev = temp * 8.621738e-5;
   //double XRTev = XRT * 8.621738e-5;
@@ -687,8 +687,10 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
 
    double Zdash = Z/Z_solar;
    double IUV;
+   double IUV_shield;
    if ((int) UV) {
       IUV = 1.0;
+      IUV_shield = 0.0;
       //if (water_only){
       //   IUV = 1.0;
       //} else {
@@ -696,15 +698,16 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
       //   IUV = IUV_0 * exp( - 38.0 * Zdash);
       //}
 
-      if (water_only){
+      if (!UVbackground_molec_redshift_on){
+      //if (water_only){
          rate[UV1] = 2.527e-10*IUV;
          rate[UV2] = 3.221e-11*IUV;
          rate[UV3] = 4.803e-10*IUV;
          rate[UV4] = 5.126e-10*IUV;
          rate[UV5] = 4.748e-10*IUV;
-         rate[UV6] = 0.00*IUV;
-         rate[UV7] = 0.00*IUV;
-         rate[UV8] = 0.00*IUV;
+         rate[UV6] = 2.04e-10*IUV_shield; //off onless we get to 1.e5K, then we explode
+         rate[UV7] = 3.15e-10*IUV_shield;
+         rate[UV8] = 1.e-12*IUV_shield; //hokey addition for now (same rate as UV7)
          rate[UV9] = 2.07e-09*IUV;
          rate[UV10] = 1.389e-10*IUV;
          rate[UV11] = 3.36e-10*IUV;
@@ -715,12 +718,12 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
          rate[UV16] = 7.363e-12*IUV;
          rate[UV17] = 1.087e-10*IUV;
          rate[UV18] = 4.31e-10*IUV;
-         rate[UV19] = 0.0*IUV;
+         rate[UV19] = 5.39e-12*IUV_shield;
          rate[UV20] = 2.631e-11*IUV;
          rate[UV21] = 9.215e-16*IUV;
-         rate[UV22] = 0.0*IUV;
-         rate[UV23] = 0.0*IUV;
-         rate[UV24] = 0.0*IUV;
+         rate[UV22] = 6.82e-12*IUV_shield;
+         rate[UV23] = 3.14e-11*IUV_shield;
+         rate[UV24] = 7.60e-11*IUV_shield;
          rate[UV25] = 5.00e-10*IUV;
          rate[UV26] = 3.00e-10*IUV;
          rate[UV34] = 2.80e-10*IUV;
@@ -919,7 +922,8 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
                 my_rates->UVbackground_table.UV38[index-1];
 
 	   //estimating H2 shielding
-	   if ((H2_shield > 0) & (Nh2 > 1.e22)){
+//	   if ((H2_shield > 0) & (Nh2 > 1.e22)){
+           if (H2_shield > 0){
               rate[UV6] = 0.0;
               rate[UV7] = 0.0;
               rate[UV8] = 0.0;
@@ -943,12 +947,13 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
            One-zone freefall test. */
 
        double xH2,zeta, zeta_16; 
-       double zeta_set [3];
+       double zeta_set [4];
+       zeta_16 = 0.0;
        if (CRX > 0){
 	  // make sure our CRX flag is feasible
-	  if (CRX < 4){
+	  if (CRX < 5){
       	     xH2 = (Y[H2m] + Y[H2plus])/n;
-	     double zeta_set[] = {1.e-16, 1.e-15, 5.e-15};
+	     double zeta_set[] = {1.e-20, 1.e-16, 1.e-15, 5.e-15};
              zeta = zeta_set[(CRX-1)]; //s^-1
 	  } else {
 	     printf("Error: CRX flag not understood.\n");
@@ -957,7 +962,7 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
 	  zeta_16 = zeta/1.e-16; //s^-1
        }
        
-       /*
+       /* Not implemented yet - added physics to be considerred
        // normalized dust-to-gas ratio (Eqn. 5 
        // of Bialy & Sternberg, 2019)
        double Zd_dash;
@@ -971,14 +976,6 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
        
 
        /****** BIALY RATES **********/
-      if(water_only){
-        rate[H1] = 3.50e-12 * pow(tov300, -0.75);
-        rate[H2] = 3.37e-16 * pow(tov300, 0.64) * exp(-9.2 * tinv);
-        rate[H3] = 4.32e-09 * pow(tov300, -0.39) * exp(-39.4 * tinv);
-	rate[UV9] = 2.07e-09*IUV;
-	rate[UV18] = 4.31e-10*IUV; //these two are already in Grackle! So turn them on only if running tests
-      }
-
       //implementing H4, Formula A1 from Martin et al. (1996)
       //NOTE: we take the full dissociation rate as the 
       // sum of contributions from collisional-induced 
@@ -1037,19 +1034,25 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
 
       double gamma_dt = calc_H4(alpha, nH, temp);
 
-      if (water_only){
+//      if (water_only){
       // We combine these for the full collisional rate
-         rate[H4] = gamma_CIE + gamma_dt;
-      }
+//         rate[H4] = gamma_CIE + gamma_dt;
+ //     }
 
-      //rates H5 and H6 not present in Bialy's expanded 2019 network... 
-      rate[H7] = 1.0e-8 * exp(-84100.0 * tinv);
       if(water_only){
+        rate[H1] = 3.50e-12 * pow(tov300, -0.75);
+        rate[H2] = 3.37e-16 * pow(tov300, 0.64) * exp(-9.2 * tinv);
+        rate[H3] = 4.32e-09 * pow(tov300, -0.39) * exp(-39.4 * tinv);
+        rate[UV9] = 2.07e-09*IUV;
+        rate[UV18] = 4.31e-10*IUV; //these two are already in Grackle! So turn them on only if running tests
+         rate[H4] = gamma_CIE + gamma_dt;
          //Here we assume that Zd_dash = Zdash, 
          //not the broken pow law used in Bialy & Sternberg (2019)
          rate[H8] = 3.00e-17 * pow(T2, 0.5) * Zdash;
          rate[H8] *= n / Y[H];
-      } // else use the Grackle h2dust rate
+      } 
+      //rates H5 and H6 not present in Bialy's expanded 2019 network... 
+      rate[H7] = 1.0e-8 * exp(-84100.0 * tinv);
 
       rate[H9] = 2.08e-09;
       rate[H10] = 4.36e-08*pow(tov300, -0.52);
@@ -1139,6 +1142,7 @@ int get_rates(int water_rates, double *rate, double temp, double n, double t_dus
       rate[Z74] = 7.50e-10;
       rate[Z75] = 2.40e-07*pow(tov300, -0.69);
       rate[Z76] = 1.09e-11*pow(tov300, -2.19)* exp(-1.65e+02 * tinv);
+
       rate[Z77] = 6.44e-10;
       rate[Z78] = 4.90e-12*pow(tov300, 0.50)* exp(-4.58e03 * tinv);
       rate[Z79] = 2.16e-09;

@@ -105,7 +105,7 @@ def evolve_freefall_metal(fc, final_metallicity, final_time,
         fc.calculate_hydrogen_number_density()
         data["nH"].append(fc["nH"][0])
 
-        fc["temperature"][0] = 100 #K
+        fc["temperature"][0] = 100.00
         data["temperature"].append(fc["temperature"][0])
         data["pressure"].append(fc["pressure"][0])
         data["time"].append(current_time * my_chemistry.time_units)

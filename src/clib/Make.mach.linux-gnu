@@ -45,12 +45,12 @@ MACH_DEFINES   = -DLINUX -DH5_USE_16_API -fPIC
 # Compiler flag settings
 #-----------------------------------------------------------------------
 
-MACH_OMPFLAGS = # OpenMP flags
+MACH_OMPFLAGS = #-fopenmp # OpenMP flags
 MACH_CPPFLAGS = -P -traditional
 MACH_CFLAGS   = 
 MACH_CXXFLAGS =
-MACH_FFLAGS   = -fno-second-underscore -ffixed-line-length-132  -fallow-argument-mismatch
-MACH_F90FLAGS = -fno-second-underscore  -fallow-argument-mismatch
+MACH_FFLAGS   = -fno-second-underscore -ffixed-line-length-132 
+MACH_F90FLAGS = -fno-second-underscore
 MACH_LDFLAGS  =  -lm -lgsl -lgslcblas -lgfortran
 
 #-----------------------------------------------------------------------
@@ -67,6 +67,7 @@ MACH_OPT_AGGRESSIVE  = -O3 -g
 #-----------------------------------------------------------------------
 
 LOCAL_INCLUDES_HDF5   = -I$(LOCAL_HDF5_INSTALL)/include # HDF5 includes
+#LOCAL_INCLUDES_HDF5   = -I/usr/include/hdf5/serial # HDF5 includes
 
 MACH_INCLUDES         = $(LOCAL_INCLUDES_HDF5)
 
@@ -75,6 +76,7 @@ MACH_INCLUDES         = $(LOCAL_INCLUDES_HDF5)
 #-----------------------------------------------------------------------
 
 LOCAL_LIBS_HDF5   = -L$(LOCAL_HDF5_INSTALL)/lib -lhdf5 -lz # HDF5 libraries
+#LOCAL_LIBS_HDF5   = -L/usr/lib/x86_64-linux-gnu/ -lhdf5_serial -lz # HDF5 libraries
 LOCAL_LIBS_MACH   = -lgfortran # Machine-dependent libraries
 
 MACH_LIBS         = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH)
@@ -84,6 +86,6 @@ MACH_LIBS         = $(LOCAL_LIBS_HDF5) $(LOCAL_LIBS_MACH)
 #-----------------------------------------------------------------------
 
 #MACH_INSTALL_PREFIX = /home/alexgagliano/Documents/Research/water_network/newSoftwares
-MACH_INSTALL_PREFIX = /home/alexgagliano/Downloads/grackle_converted
+MACH_INSTALL_PREFIX = /lustre/scratch3/turquoise/agagliano/WATER/summer2020
 MACH_INSTALL_LIB_DIR =
 MACH_INSTALL_INCLUDE_DIR =

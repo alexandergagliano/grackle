@@ -24,7 +24,7 @@ int do_network_step(double *Y, double *r, double dt, double *dtrcmd, int ispecie
   return ierr;
 }
 
-int integrate_network(int water_rates, double *Y, double T0, double T1, double n, double metl, double UV, int CRX, double dtwant, int *nstp, code_units *my_units, int ispecies, int H2_shield, double crsHI, double k24, int water_only, chemistry_data_storage *my_rates)
+int integrate_network(int water_rates, double *Y, double T0, double T1, double n, double metl, double UV, int UV_molec, int CRX, double dtwant, int *nstp, code_units *my_units, int ispecies, int H2_shield, double crsHI, double k24, int water_only, chemistry_data_storage *my_rates)
   {
 
   double *Ylst = (double *) malloc(nSpecies * sizeof(double)); // last iter abundances
@@ -32,12 +32,16 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
   memcpy(Ylst, Y, sizeof(double) * nSpecies);
   double dttry, dtdone, dtrcmd;
   int max_substp;
+  max_substp = 5.e3;
+/*
   if(water_only){
     max_substp = 5000; // max. number of substeps
   }
   else{
-    max_substp = 500;
+    //increase the max numbeer of substeps to 5000 to hopefully get through this
+    max_substp = 5000;
   }
+*/
   int j, ierr;
   double *Y_old = (double *) malloc(nSpecies * sizeof(double));
 
@@ -56,13 +60,20 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
   }
   memcpy(Y_old, Y, sizeof(double) * nSpecies);
 
-  // substep loop
-  for (j = 1; j < max_substp; j++) {
-
     // the rates are updated based on the density and temp
     // of the cell
-    int rerr = get_rates(water_rates, r, T0, n, T0, metl, UV, CRX, my_units, ispecies, Y, H2_shield, crsHI, k24, water_only, my_rates);
-    if (rerr != 0){return rerr;}
+    // note: now we don't change the rates within the substepper!
+    // 1028 - added my_chemistry.UVbackground_molec_redshift_on
+    int rerr = get_rates(water_rates, r, T0, n, T0, metl, UV, UV_molec, CRX, my_units, ispecies, Y, H2_shield, crsHI, k24, water_only, my_rates);
+    if (rerr != 0){
+       free(r);
+       free(Ylst);
+       free(Y_old);
+       return rerr;
+    }
+
+  // substep loop
+  for (j = 1; j < max_substp; j++) {
 
     // perform one step integration
     ierr = do_network_step(Y, r, dttry, &dtrcmd, ispecies, UV, water_rates);

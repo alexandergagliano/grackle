@@ -95,16 +95,16 @@ void cal_rhs(double* restrict F, double* restrict Y, reaction_t* restrict reacti
     // NOTE: hypothetically, any negative species will be forced to have
     // nra or nrb = 0, so these checks shouldn't be needed. Uncomment them
     // if there are problems with seg faults and bad memory accesses.
-    //if(ra >= 0){
+    if(ra >= 0){
       for(int p = 0; p < reactions[i].nra; p++){
         ya *= Y[ra];
       }
-    //}
-    //if(rb >= 0){
+    }
+    if(rb >= 0){
       for(int p = 0; p < reactions[i].nrb; p++){
         yb *= Y[rb];
       }
-    //}
+    }
 
     // Calculate the rhs terms for each product and reactant
     // Reactants

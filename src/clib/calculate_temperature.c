@@ -214,7 +214,7 @@ int local_calculate_temperature_table(chemistry_data *my_chemistry,
 
   return SUCCESS;
 }
-
+/*
 int _calculate_temperature(chemistry_data *my_chemistry,
                            chemistry_data_storage *my_rates,
                            code_units *my_units,
@@ -225,6 +225,34 @@ int _calculate_temperature(chemistry_data *my_chemistry,
                            gr_float *HeI_density, gr_float *HeII_density, gr_float *HeIII_density,
                            gr_float *H2I_density, gr_float *H2II_density,
                            gr_float *DI_density, gr_float *DII_density, gr_float *HDI_density,
+                           gr_float *e_density, gr_float *metal_density,
+                           gr_float *temperature)*/
+int _calculate_temperature(chemistry_data *my_chemistry,
+                           chemistry_data_storage *my_rates,
+                           code_units *my_units,
+                           int grid_rank, int *grid_dimension,
+                           int *grid_start, int *grid_end,
+                           gr_float *density, gr_float *internal_energy,
+                           gr_float *HI_density, gr_float *HII_density, gr_float *HM_density,
+                           gr_float *HeI_density, gr_float *HeII_density, gr_float *HeIII_density,
+                           gr_float *H2I_density, gr_float *H2II_density,
+                           gr_float *DI_density, gr_float *DII_density, gr_float *HDI_density,
+                           gr_float *Water_density, gr_float *O_density, gr_float *OH_density,
+                           gr_float *O2_density, gr_float *Oplus_density,
+                           gr_float *OHplus_density, gr_float *H2Oplus_density,
+                           gr_float *H3Oplus_density, gr_float *O2plus_density,
+                           gr_float *Cplus_density, gr_float *C_density,
+                           gr_float *CH_density, gr_float *CH2_density,
+                           gr_float *CH3_density, gr_float *CH4_density,
+                           gr_float *CO_density, gr_float *COplus_density,
+                           gr_float *CO2_density,
+                           gr_float *CHplus_density,
+                           gr_float *CH2plus_density,
+                           gr_float *H3plus_density,
+                           gr_float *HCOplus_density, gr_float *HeHplus_density,
+                           gr_float *CH3plus_density,
+                           gr_float *CH4plus_density, gr_float *CH5plus_density,
+                           gr_float *O2Hplus_density,
                            gr_float *e_density, gr_float *metal_density,
                            gr_float *temperature)
 {
@@ -249,6 +277,38 @@ int _calculate_temperature(chemistry_data *my_chemistry,
   my_fields.HDI_density              = HDI_density;
   my_fields.e_density                = e_density;
   my_fields.metal_density            = metal_density;
+  if (my_chemistry->withWater){
+      my_fields.Water_density   = Water_density;
+      my_fields.O_density       = O_density;
+      my_fields.OH_density      = OH_density;
+      my_fields.O2_density      = O2_density;
+      my_fields.Oplus_density   = Oplus_density;
+      my_fields.OHplus_density  = OHplus_density;
+      my_fields.H2Oplus_density = H2Oplus_density;
+      my_fields.H3Oplus_density = H3Oplus_density;
+      my_fields.O2plus_density  = O2plus_density;
+      my_fields.Cplus_density   = Cplus_density;
+      my_fields.C_density       = C_density;
+      my_fields.CH_density      = CH_density;
+      my_fields.CH2_density     = CH2_density;
+      my_fields.CH3_density     = CH3_density;
+      my_fields.CH4_density     = CH4_density;
+      my_fields.CO_density      = CO_density;
+      my_fields.COplus_density  = COplus_density;
+      my_fields.CO2_density     = CO2_density;
+
+      if (my_chemistry->water_rates == 3){
+        my_fields.CHplus_density  = CHplus_density;
+        my_fields.CH2plus_density = CH2plus_density;
+        my_fields.H3plus_density  = H3plus_density;
+        my_fields.HCOplus_density = HCOplus_density;
+        my_fields.HeHplus_density = HeHplus_density;
+        my_fields.CH3plus_density = CH3plus_density;
+        my_fields.CH4plus_density = CH4plus_density;
+        my_fields.CH5plus_density = CH5plus_density;
+        my_fields.O2Hplus_density = CH5plus_density;
+      }
+  }
 
   if (local_calculate_temperature(my_chemistry, my_rates, my_units,
                                   &my_fields, temperature) == FAIL) {

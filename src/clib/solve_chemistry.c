@@ -205,6 +205,11 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
 
   int ierr = 0;
 
+  //if (my_chemistry->dust_chemistry){
+  //  printf("gas_grain = %.2e\n", my_rates->gas_grain);
+  //  printf("regr = %.2e\n", my_rates->regr);
+  //}
+
   if(!my_chemistry->water_only){
      FORTRAN_NAME(solve_rate_cool_g)(
        &my_chemistry->with_radiative_cooling,
@@ -433,7 +438,6 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
      return SUCCESS;
 
 // Iteration over all cells of grid
-// TODO: parallelize with CUDA
   int i, j, k, nstp;
 
   int i_start = *my_fields->grid_start;
@@ -455,25 +459,24 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
 
   /* flag to turn on UV rates in water network! */
   double UV_water = (double) my_chemistry->UVbackground;
-
   double d_to_n = co_density_units/mh;
 
   setup_rxns(my_chemistry->primordial_chemistry, UV_water, my_chemistry->crx_ionization, my_chemistry->water_rates);
   setup_species(my_chemistry->primordial_chemistry, UV_water, my_chemistry->crx_ionization, my_chemistry->water_rates);
 
   // Building the reactions is time consuming. We should only do it once.
-  static int first = 1;
-  static double *Y;
-  if(first){
+  //static int first = 1;
+   //static double *Y;
+  //if(first){
     my_reactions = (reaction_t*) malloc(nReactions*sizeof(reaction_t));
     build_reactions(my_reactions,my_chemistry->primordial_chemistry,UV_water,my_chemistry->crx_ionization, my_chemistry->water_rates);
-    Y = (double *) malloc(nSpecies * sizeof(double));
-    first = 0;
-  }
+    double *Y = (double *) malloc(nSpecies * sizeof(double));
+  //  first = 0;
+  //}
 
-  # ifdef _OPENMP
-  # pragma omp parallel for schedule( runtime ) collapse(3) private( i, j, k, index, metallicity, Y, temperature, C_num_pre, O_num_pre, C_num_post, O_num_post, scale, metal_cgs, ierr, metal_exp, delta_mass, sum_metl, metl_frac, f)
-  # endif
+  //# ifdef _OPENMP
+  //# pragma omp parallel for schedule( runtime ) collapse(3) private(Y)
+  //# endif
   for (k = 0; k < dk; k++){
     for (j = 0; j < dj; j++){
         for (i = 0; i < di; i++){
@@ -487,19 +490,12 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                //double temperature = (double) my_fields->internal_energy[index]* (double) temperature_units;
                double temperature;
                if(my_chemistry->water_only){
-                temperature = 100.0;
+                temperature = 100.0;  //setting high for now
                }
                else{
                  temperature = (double) my_fields->internal_energy[index]* (double) temperature_units;
                  if( metallicity < 1.e-8){
                    continue;
-                 }
-                 static int on = 1;
-                 if(on){
-                   printf("Water network turned on!\n");
-                   printf("Z = %g\n",metallicity);
-                   printf("T = %g\n",temperature);
-                   on = 0;
                  }
                }
 
@@ -535,7 +531,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                if (my_chemistry->primordial_chemistry > 1)
                {
                    Y[Hmin] = my_fields->HM_density[index];
-                  Y[H2m] = my_fields->H2I_density[index];
+                   Y[H2m] = my_fields->H2I_density[index];
 
                    Y[Hmin] *= d_to_n;
                    Y[H2m]  *= d_to_n;
@@ -564,15 +560,20 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   Y[H2plus]  = my_fields->H2II_density[index];
                   Y[HeHplus] = my_fields->HeHplus_density[index];
                   Y[CH3plus] = my_fields->CH3plus_density[index];
-                 Y[CH4plus] = my_fields->CH4plus_density[index];
-                 Y[CH5plus] = my_fields->CH5plus_density[index];
-                 Y[O2Hplus] = my_fields->O2Hplus_density[index];
+                  Y[CH4plus] = my_fields->CH4plus_density[index];
+                  Y[CH5plus] = my_fields->CH5plus_density[index];
+                  Y[O2Hplus] = my_fields->O2Hplus_density[index];
 
                   Y[H2plus] *= d_to_n;
                   Y[He]     *= d_to_n;
                   Y[Heplus] *= d_to_n;
                }
 
+
+               //debugging printout 
+              //for (int j = 0; j < nSpecies; j++){
+              //    printf("%i, %.2e\n", j, Y[j]);
+              //}
 
               double C_num_pre, O_num_pre, C_num_post, O_num_post, scale, sum_metl, metal_cgs, delta_mass, metl_frac, metal_frac;
 
@@ -594,7 +595,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
               // Maybe indicate that you need to subcycle more?
 
                // complete one iteration of the water network
-               ierr = integrate_network(my_chemistry->water_rates, Y, temperature, temperature, my_fields->density[index], metallicity*Z_solar, UV_water, my_chemistry->crx_ionization, dt_value * my_units->time_units, &nstp, my_units, my_chemistry->primordial_chemistry, my_chemistry->H2_self_shielding, my_uvb_rates.crsHI, my_uvb_rates.k24,my_chemistry->water_only, my_rates);
+               ierr = integrate_network(my_chemistry->water_rates, Y, temperature, temperature, my_fields->density[index], metallicity*Z_solar, UV_water, my_chemistry->UVbackground_molec_redshift_on, my_chemistry->crx_ionization, dt_value * my_units->time_units, &nstp, my_units, my_chemistry->primordial_chemistry, my_chemistry->H2_self_shielding, my_uvb_rates.crsHI, my_uvb_rates.k24,my_chemistry->water_only, my_rates);
 
                if (ierr != 0 && ierr != MXSTP)
                {
@@ -679,10 +680,7 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   // Ensure water metals don't sum to greater than metal field //
                   if ((sum_metl > metal_cgs) || (delta_mass > tiny)) {
                      // scale the water species back to appropriate values //
-                     metl_frac = metal_cgs/sum_metl * metal_frac;
-                    //printf("percent diff in metal is %.2f\n", metl_frac-1.0);
-
-                    if (abs(metl_frac - 1.0) >= 1.e-4){
+                     metl_frac = min(metal_cgs/sum_metl * metal_frac, 1.e50); //don't let us scale up by more than a certain amount in one iteration
 
                      Y[O]       *= metl_frac;
                      Y[OH]      *= metl_frac;
@@ -713,13 +711,19 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                         Y[O2Hplus] *= metl_frac;
                     }
                    }
-                  }
-              //}
 
               // Set tiny floor for metal species - everything past
               for (int j = 0; j < nSpecies; j++){
                   Y[j] = max(Y[j], tiny);
               }
+
+               //account for ionization at high temperature
+               if (temperature >= 1.e5){
+                  Y[Cplus] += Y[C];
+                  Y[Oplus] += Y[O];
+                  Y[C] = tiny;
+                  Y[O] = tiny;
+               }
 
 
                /* Write updated number densities back to metal fields */
@@ -747,7 +751,6 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                my_fields->CO_density[index] = Y[CO];
                my_fields->COplus_density[index] = Y[COplus];
                my_fields->CO2_density[index] = Y[CO2];
-
 
                if (my_chemistry->primordial_chemistry > 1)
                {
@@ -786,7 +789,8 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
         }
      }
   }
-
+        free(Y);
+        free(my_reactions);
 	return SUCCESS;
     }
 

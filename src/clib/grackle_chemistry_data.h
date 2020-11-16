@@ -150,6 +150,10 @@ typedef struct
   /* flag to specify the cosmic ray ionization levels */
   int crx_ionization;
 
+  /* flag to turn on redshift-dependent UV rates */ 
+  /* for the water network                       */ 
+  int UVbackground_molec_redshift_on;
+
   /* data file containing UV photodissociation and photoionization rates
    * for molecular chemistry in the water network*/
   char *grackle_molecular_data;

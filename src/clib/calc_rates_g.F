@@ -272,7 +272,11 @@ c
 c  4) Energy transfer from gas to dust grains, following equation 2.15
 c     of Hollenbach & McKee (1989).
 c     Normalize to the HM89 dust to gas ratio.
+      if ((iwater .eq. 1) .and. (water_rates .eq. 1))  then 
+      fgr = 1.0d0
+      else 
       fgr = 0.009387d0
+      endif
       grain_coef = 1.2d-31 * 1.0d3**(-0.5d0) / fgr
 c
 c  Compute log spacing in temperature
@@ -574,12 +578,21 @@ c
 c
 c     k23 from Omukai (2000).
 c
+           if (water_rates .eq. 1) then 
+           h2dusta(i,j) = 6.0d-17 * (ttt / 300.0d0)**(0.5d0) *
+     &          ((1.0d0 + exp(7.5d2 * ((1.0d0 / 75.0d0) -
+     &                                (1.0d0 / d_ttt))))**(-1.0d0)) *
+     &          ((1.0d0 + (4.0d-2 * (ttt + d_ttt)**(0.5d0)) +
+     &           (2.0d-3 * ttt) +
+     &           (8.0d-6 * ttt**(2.0d0)))**(-1.0d0)) / kunit
+           else
            h2dusta(i,j) = 6.0d-17 / fgr * (ttt / 300.0d0)**(0.5d0) *
      &          ((1.0d0 + exp(7.5d2 * ((1.0d0 / 75.0d0) - 
      &                                (1.0d0 / d_ttt))))**(-1.0d0)) *
      &          ((1.0d0 + (4.0d-2 * (ttt + d_ttt)**(0.5d0)) + 
      &           (2.0d-3 * ttt) + 
      &           (8.0d-6 * ttt**(2.0d0)))**(-1.0d0)) / kunit
+           endif
 #else
 c
 c     Equation 3.8 from Hollenbach & McKee (1979).
