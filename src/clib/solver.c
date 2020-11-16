@@ -16,7 +16,7 @@
 
 int do_network_step(double *Y, double *r, double dt, double *dtrcmd, int ispecies, double UV, int water_rates) {
 
-  // backward-Euler
+  // backward-Euler solver for Waternet
   int ierr = backward_euler_NR(r, Y, dt, dtrcmd, ispecies, UV, water_rates);
   //int ierr = backward_euler_step(r, Y, dt, dtrcmd, 0, Y, ispecies, UV, water_rates);
   //int ierr = rk45_integrate(r, Y, dt, dtrcmd, ispecies, UV, water_rates);
@@ -32,20 +32,12 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
   memcpy(Ylst, Y, sizeof(double) * nSpecies);
   double dttry, dtdone, dtrcmd;
   int max_substp;
-  max_substp = 5.e3;
-/*
-  if(water_only){
-    max_substp = 5000; // max. number of substeps
-  }
-  else{
-    //increase the max numbeer of substeps to 5000 to hopefully get through this
-    max_substp = 5000;
-  }
-*/
+  max_substp = 5.e3; // The maximum number of iterations - if we fail after this, we're in trouble.
+
   int j, ierr;
   double *Y_old = (double *) malloc(nSpecies * sizeof(double));
 
-  // init
+  // initialize the array of reactions
   double *r = (double *) malloc(nReactions * sizeof(double));
 
   // We start by trying to jump the entire time interval, 
@@ -62,8 +54,7 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
 
     // the rates are updated based on the density and temp
     // of the cell
-    // note: now we don't change the rates within the substepper!
-    // 1028 - added my_chemistry.UVbackground_molec_redshift_on
+    // note: now we don't change the rates within the substeps!
     int rerr = get_rates(water_rates, r, T0, n, T0, metl, UV, UV_molec, CRX, my_units, ispecies, Y, H2_shield, crsHI, k24, water_only, my_rates);
     if (rerr != 0){
        free(r);
@@ -93,39 +84,9 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
       }
     }
     
-    /*
-    if (j%200 == 0) {
-      // print status
-      printf("substp %6d  dtwant = %9.2e  dtdone = %9.2e dttry = %9.2e  dtrcmd = %9.2e  err = %5s\n",j,dtwant,dtdone,dttry,dtrcmd,errmsg[ierr]);
-    }
-    */
-
     //check success of step
     if (ierr == 0){
-      //printf("dt = %g\n",dttry);
-      // success
       dtdone += dttry;
-
-      // compute greatest change in chemical over time step
-      /*
-      double tmp, drel, dydt;
-      int idx = 0;
-      drel = 1.e-99;
-      for (int i = 0; i < nSpecies; i++) {
-        //printf("cvg x, all abunds: %3d: Ylst = %15.6e  Y = %15.6e\n", i, Ylst[i], Y[i]);
-//	printf("Y[%i] = %.2e\n", i, Y[i]);
-        //tmp = fabs(Y[i] - Y_old[i])/Y_old[i];
-        dydt = (Y[i] - Y_old[i])/dttry;
-        printf("dY[%d]/dt = %g\n",i,dydt);
-        if ((Y[i] / sumY > noise_tol) && (tmp > drel)) {
-          idx = i;
-          drel = tmp;
-        }
-
-       }
-      printf("\n");
-      printf("Greatest Change: Y_old[%2d] = %.5e  Y[%2d] = %.5e  DY[%d] = %.5e\n",idx,Y_old[idx],idx,Y[idx],idx,drel);
-      */
 
       if (dtdone >= dtwant ) {
         //cycle complete
@@ -145,22 +106,18 @@ int integrate_network(int water_rates, double *Y, double T0, double T1, double n
 
     // check for time step underflow
     if (dttry < SMALL) {
-  //      printf("time step underflow :/ \n"); 
         dttry = SMALL;
         ierr = SMLDT;
         break;
     }
 
-    //maximum number of iterations reached
-    /*
+    /* Is this needed? 
     if ( j == max_substp - 1) {
-      // SJ: NO!!! DO NOT DO THIS!!!
-      printf("max sub time steps reached\n");
+      printf("Max Waternet steps reached!\n");
       exit(99);
       ierr = MXSTP;
       break;
-    }
-    */
+    }*/
   } 
 
   //free the malloc'd arrays

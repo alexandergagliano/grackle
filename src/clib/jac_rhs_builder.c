@@ -3,6 +3,7 @@
 #include <chemistry.h>
 #include <stdlib.h>
 
+/* Builds the chemical reactions that will be used in Waternet. */
 void build_reaction(reaction_t* restrict reaction, int rate, int nra, int nrb, int ra, int rb,
                            int npa, int npb, int npc, int npd,
                            int sa, int sb, int sc, int sd){

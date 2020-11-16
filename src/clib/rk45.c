@@ -72,19 +72,11 @@ int check_solution(double *Y, double *Ylst, double *err, double *tol, int ispeci
   ierr = ALLOK;
 
   // check for negative abundances
-  //if (Ynegmax >= neg_tol && (!NR)) {
   if (Ynegmax/sumY >= neg_tol) {
     *err = Ynegmax/sumY;
     *tol = neg_tol;
     ierr = NEG_X;
 
-    //if (NR) {
-    //  printf("neg x: %3d Ylst = %15.6e  Y = %15.6e\n", ineg, Ylst[ineg], Y[ineg]);
-    //}
-    //for (int i = 0; i < nSpecies; i++) {
-    //  printf("neg x, all abunds: %3d: Ylst = %15.6e  Y = %15.6e\n", i, Ylst[i], Y[i]);
-    //}
-    
     goto error;
   }
 
@@ -104,7 +96,6 @@ int check_solution(double *Y, double *Ylst, double *err, double *tol, int ispeci
   sumM1 = calculate_mass(Y, ispecies, water_rates);
   if (fabs(sumM0 - sumM1)/fabs(sumM0) > pos_tol)
   {
-  //  printf("Mass Conservation violation! pChange(x) = %.5e \n", sumFrac);
     *err = fabs(sumM0 - sumM1)/fabs(sumM0);
     *tol = pos_tol;
     ierr = MASSC;
@@ -131,9 +122,7 @@ int check_solution(double *Y, double *Ylst, double *err, double *tol, int ispeci
     //noise_tol = 1.e-18; // 1.e-15;
 
     if (((Ylst[i]/sumYlst) > noise_tol) || ((Y[i]/sumY) > noise_tol)) {
-      /*my_eps = fabs((Y[i] - Ylst[i]) / fmax(Ylst[i], SMALL));*/
       my_eps = fabs((Y[i]/sumY - Ylst[i]/sumYlst) / fmax(Ylst[i]/sumYlst, SMALL));
-      //printf("my_eps = %.2e\n", my_eps);
       if (my_eps > eps) {
         eps = my_eps;
         i_grd = i;
@@ -142,12 +131,6 @@ int check_solution(double *Y, double *Ylst, double *err, double *tol, int ispeci
 
     *err = eps; *tol = pos_tol;
     ierr = (*err < *tol) ? 0 : E_TOL;
-
-    /*
-    if (ierr == E_TOL){
-    	printf("convergence: Y5[%d] = %.6e  Y4[%d] = %.6e\n", i_grd, Ylst[i_grd], i_grd, Y[i_grd]);
-    	printf("convergence: eps = %.6e\n", eps);
-    }*/
 
     if (ierr == E_TOL){goto error;}
   }
@@ -188,19 +171,13 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
 
   // get RHS (dY/dt) at entry abundances Y0 and calculate k1 from it, and new
   // abundances from that
-  //calculate_dydt(r, dydt, Y0, p);
-  //get_f_vector(r, dydt, Y0, ispecies, water_rates, (int) UV);
-
   cal_rhs(dydt, Y0, my_reactions, r);
   for (int i = 0; i < nSpecies; i++) {
-    //printf("i = %i, dydt[i] = %.2e\n", i, dydt[i]);
     k1[i] = dt * dydt[i];
     Y[i] = Y0[i] + (b21 * k1[i]);
   }
 
   // use k1 to get new abundances; get k2 from those
-  //calculate_dydt(r, dydt, Y, p);
-  //get_f_vector(r, dydt, Y, ispecies, water_rates, (int) UV);
   cal_rhs(dydt, Y, my_reactions, r);
   for (int i = 0; i < nSpecies; i++) {
     k2[i] = dt * dydt[i];
@@ -208,8 +185,6 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
   }
 
   // use k2 to get k3
-  //calculate_dydt(r, dydt, Y, p);
-  //get_f_vector(r, dydt, Y, ispecies, water_rates, (int) UV);
   cal_rhs(dydt, Y, my_reactions, r);
   for (int i = 0; i < nSpecies; i++) {
     k3[i] = dt * dydt[i];
@@ -217,8 +192,6 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
   }
 
   // use k3 to get k4
-  //calculate_dydt(r, dydt, Y, p);
-  //get_f_vector(r, dydt, Y, ispecies, water_rates, (int) UV);
   cal_rhs(dydt, Y, my_reactions, r);
   for (int i = 0; i < nSpecies; i++) {
     k4[i] = dt * dydt[i];
@@ -226,8 +199,6 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
   }
 
   // use k4 to get k5
-  //calculate_dydt(r, dydt, Y, p);
-  //get_f_vector(r, dydt, Y, ispecies, water_rates, (int) UV);
   cal_rhs(dydt, Y, my_reactions, r);
   for (int i = 0; i < nSpecies; i++) {
     k5[i] = dt * dydt[i];
@@ -249,9 +220,6 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
     Y5[i] = Y0[i] + c1 *k1[i] + c2 *k2[i] + c3 *k3[i] + c4 *k4[i] + c5 *k5[i] + c6 *k6[i];
     Y4[i] = Y0[i] + c1s*k1[i] + c2s*k2[i] + c3s*k3[i] + c4s*k4[i] + c5s*k5[i] + c6s*k6[i];
     Y[i] = Y5[i];
-
-//   printf("i = %i, Previous Y[i]: %.2e; Final Y[i] = %.2e\n; Change in Y[i] is %.2e\n", i, Y0[i], Y[i], (c1 *k1[i] + c2 *k2[i] + c3 *k3[i] + c4 *k4[i] + c5 *k5[i] + c6 *k6[i]));
-//   printf("Y[i]/Y[HI] = %.2e\n", Y[i]/Y[H]);
   }
 
   ierr = check_solution(Y4, Y5, &err, &tol, ispecies, water_rates, 0); 
@@ -269,14 +237,6 @@ int rk45_integrate(double *r, double *Y, double dt, double* dtrcmd, int ispecies
     fac = 0.5*pow(fac,0.2);
   }
   *dtrcmd = dt * fmax(fmin(fac,maxfac),minfac);
-  if (ierr == E_TOL){
-	  printf("dttry = %.2e   dtrcmd = %.2e\n", dt, *dtrcmd);
-  }
-  /*
-  if (ierr != ALLOK){
-  printf("RK45: dttry = %.2e  msg = %5s  err = %.2e  tol = %.2e  dtrcmd = %.2e\n", dt, errmsg[ierr], err, tol, *dtrcmd);
-  }
-  */
 
   return ierr;
 }

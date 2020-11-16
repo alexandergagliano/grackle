@@ -211,7 +211,8 @@ void setup_rxns(int ispecies, int UV, int CRX, int water_rates)
       Z52 = ++rxn_counter;
       Z53 = ++rxn_counter;
 
-      // DOUBLE-COUNTED RATES! 
+      // These reactions aren't used for now, 
+      // so we don't set them in rates.c.
       Z54 = ++rxn_counter;
       Z55 = ++rxn_counter;
       Z56 = ++rxn_counter;
@@ -232,7 +233,7 @@ void setup_rxns(int ispecies, int UV, int CRX, int water_rates)
       Z70 = ++rxn_counter;
       Z71 = ++rxn_counter;
       Z72 = ++rxn_counter;
-      // Double-counted
+      // Also not used:
       Z73 = ++rxn_counter;
       //
       Z74 = ++rxn_counter;

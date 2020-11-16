@@ -14,18 +14,18 @@
 /* ---------------------------------------------------
  *
  *                   Water Network
- *               Last Modified: 05/08/19
+ *               Last Modified: 09/15/2020
  *                Author: Alex Gagliano
  *
  * ---------------------------------------------------
  *
- * The following lists the chemical reactions 
+ * The following lists the dominant chemical reactions 
  * implemented in waternet, including those originally
  * defined in Omukai et al. (2005) and Bialy & 
  * Sternberg (2015 and 2019). Some of these are already 
  * defined in Grackle; where this is the case, we 
- * floor the reaction rates in Grackle and use the 
- * rates in this file. The table is constructed as 
+ * floor the reaction rates in this file and use the 
+ * rates in Grackle. The table is constructed as 
  * follows:
  *
  * ------- 01/02/03:    a    + b   ->   c   +  d
@@ -113,19 +113,24 @@
  * ------- Z40//R279:  H2I   + CI   -> CH2I + phot
  *
  * If water_rates = 3, we additionally consider
- * 9 species and 66 reactions that were not in
- * Omukai (2005). These are given as 
+ * 9 species and ~350 reactions that were not in
+ * Omukai (2005). The most important of these reactions 
+ * are given below as
  *
  * ------- 03/04:    a    + b   ->   c   +  d
  *
  * Where 03 is the reaction in Bialy & Sternberg
  * (2019) and 04 is the reaction number in waternet,
  * based on an extension of Omukai's original 
- * numbering scheme.
+ * numbering scheme. We list up to Z94 here as the 
+ * reduced network - the remaining reactions contribute
+ * minimally to the final abundances. The full list of 
+ * all reactions used by Waternet can be found in 
+ * chemistry.c.
  *
  * -------------------------------------------------
- * Species: CH+, CH2+, He, He+, H3+, HCO+, CH3+, H2+, 
- *          HeH+ 
+ * Species: CHII, CH2II, He, HeII, H3II, HCOII, CH3II, H2II, 
+ *          HeHII, CH3II, CH4II, CH5II, O2HII
  *
  * --------------Hydrogen Reactions------------------
  *
@@ -139,43 +144,62 @@
  * ------- R169/H16:  HeHII + H2I -> H3II  + HeI
  * ------- R194/H17:  HeHII + HI  -> H2II  + HeI
  * ------- R277/H18:  HeI   + HII -> HeHII + p
+ * ------- R225/H19:  HM    + HII -> HI    + H
+ * ------- R276/H20:  HII   + HI  -> H2II  + p
  *
  * --------------Metal Reactions------------------
  * 
- * ------- R239/Z43:  CH2I  + OI  -> COI   + H2I
- * ------- R240/Z44:  CH2I  + OI  -> COI   + 2HI
- * ------- R203/Z45:  HeII  + COI -> HeI   + CII + OI
- * ------- R103/Z46:  O2I   + CII -> COII  + OI
- * ------- R187/Z48:  H3II  + OI  -> OHII  + H2I
- * ------- R95/Z49:   H3OII + e   -> OHI   + H2I
- * ------- R94/Z50:   H3OII + e   -> OI    + H2I
- * ------- R89/Z51:   H2OII + e   -> OI    + 2HI
- * ------- R101/Z52:  OHII  + e   -> OI    + HI
- * ------- R183/Z53:  H3II  + COI -> HCOII + H2I
- * ------- R96/Z54:   H3OII + e   -> OHI   + 2HI
- * ------- R234/Z55:  OHI   + CI  -> COI   + HI
- * ------- R105/Z56:  OHI   + CII -> COII  + HI
- * ------- R43/Z57:   OHI   + HII -> OHII  + HI
- * ------- R102/Z58:  H2OI  + CII -> HCOII + HI
- * ------- R176/Z59:  HCOII + H2OI-> H3OII + COI
- * ------- R184/Z60:  H2OI  + H3II-> H3OII + H2I
- * ------- R178/Z61:  H3II  + CI  -> CHII  + H2I 
- * ------- R163/Z62:  CHII  + H2I -> CH2II + HI
- * ------- R278/Z63:  CII   + H2I -> CH2II + ph
- * ------- R164/Z64:  CH2II + H2I -> CH3II + HI
- * ------- R76/Z65:   CH3II + e   -> CH2I  + HI
- * ------- R77/Z66:   CH3II + e   -> CHI   + H2I
- * ------- R78/Z67:   CH3II + e   -> CHI   + 2HI
- * ------- R72/Z68:   CHII  + e   -> CI    + HI
- * ------- R75/Z69:   CH2II + e   -> CHI   + HI
- * ------- R74/Z70:   CH2II + e   -> CI    + 2HI
- * ------- R73/Z71:   CH2II + e   -> CI    + H2I
- * ------- R189/Z72:  CHII  + e   -> CII   + H2I
- * ------- R264/Z73:  CHI   + HI  -> CI    + H2I
- * ------- R166/Z74:  COII  + H2I -> HCOII + HI
- * ------- R97/Z75:   HCOII + e   -> COI   + HI
- * ------- R1/Z76:    OI    + CHI -> HCOII + e
- *  TODO: Add Z77 - Z281 Reactions!! 
+ * ------- R239/Z43:  CH2I  + OI   -> COI   + H2I
+ * ------- R240/Z44:  CH2I  + OI   -> COI   + 2HI
+ * ------- R203/Z45:  HeII  + COI  -> HeI   + CII + OI
+ * ------- R103/Z46:  O2I   + CII  -> COII  + OI
+ * ------- R187/Z48:  H3II  + OI   -> OHII  + H2I
+ * ------- R95/Z49:   H3OII + e    -> OHI   + H2I
+ * ------- R94/Z50:   H3OII + e    -> OI    + H2I
+ * ------- R89/Z51:   H2OII + e    -> OI    + 2HI
+ * ------- R101/Z52:  OHII  + e    -> OI    + HI
+ * ------- R183/Z53:  H3II  + COI  -> HCOII + H2I
+ * ------- R96/Z54:   H3OII + e    -> OHI   + 2HI
+ * ------- R234/Z55:  OHI   + CI   -> COI   + HI
+ * ------- R105/Z56:  OHI   + CII  -> COII  + HI
+ * ------- R43/Z57:   OHI   + HII  -> OHII  + HI
+ * ------- R102/Z58:  H2OI  + CII  -> HCOII + HI
+ * ------- R176/Z59:  HCOII + H2OI -> H3OII + COI
+ * ------- R184/Z60:  H2OI  + H3II -> H3OII + H2I
+ * ------- R178/Z61:  H3II  + CI   -> CHII  + H2I 
+ * ------- R163/Z62:  CHII  + H2I  -> CH2II + HI
+ * ------- R278/Z63:  CII   + H2I  -> CH2II + ph
+ * ------- R164/Z64:  CH2II + H2I  -> CH3II + HI
+ * ------- R76/Z65:   CH3II + e    -> CH2I  + HI
+ * ------- R77/Z66:   CH3II + e    -> CHI   + H2I
+ * ------- R78/Z67:   CH3II + e    -> CHI   + 2HI
+ * ------- R72/Z68:   CHII  + e    -> CI    + HI
+ * ------- R75/Z69:   CH2II + e    -> CHI   + HI
+ * ------- R74/Z70:   CH2II + e    -> CI    + 2HI
+ * ------- R73/Z71:   CH2II + e    -> CI    + H2I
+ * ------- R189/Z72:  CHII  + e    -> CII   + H2I
+ * ------- R264/Z73:  CHI   + HI   -> CI    + H2I
+ * ------- R166/Z74:  COII  + H2I  -> HCOII + HI
+ * ------- R97/Z75:   HCOII + e    -> COI   + HI
+ * ------- R1/Z76:    OI    + CHI  -> HCOII + e
+ * ------- R47/Z77:   H2II  + COI  -> COII  + H2I  
+ * ------- R64/Z78:   OII   + COI  -> COII  + OI  
+ * ------- R155/Z79:  H2II  + COI  -> HCOII + HI  
+ * ------- R173/Z80:  H2OII + COI  -> HCOII + OHI  
+ * ------- R215/Z81:  OHII  + COI  -> HCOII + OI  
+ * ------- R265/Z82:  HI    + COI  -> OHI   + CI  
+ * ------- R223/Z83:  HM    + CII  -> CI    + HI 
+ * ------- R2/Z84:    HM    + CI   -> CHI   + e
+ * ------- R3/Z85:    HM    + CH2I -> CH3I  + e
+ * ------- R4/Z86:    HM    + CH3I -> CH4I  + e 
+ * ------- R5/Z87:    HM    + CHI  -> CH2I  + e 
+ * ------- R7/Z88:    HM    + OI   -> OHI   + e
+ * ------- R8/Z89:    HM    + OHI  -> H2OI  + e 
+ * ------- R9/Z90:    H2I   + CHI  -> CI    + H2I  
+ * ------- R11/Z91:   H2I   + H2OI -> OHI   + H2I 
+ * ------- R12/Z92:   H2I   + O2I  -> OI    + OI  
+ * ------- R13/Z93:   H2I   + OHI  -> OI    + H2I 
+ * ------- R15/Z94:   HI    + CHI  -> CI    + HI
  *
  * ---------------UV Reactions---------------------
  *
@@ -189,7 +213,36 @@
  * -------     /UV8:   OI    + p  -> OII   + e 
  * ------- PH23/UV9:   HM    + p  -> HI    + e
  * ------- PH19/UV10:  CHI   + p  -> CHII  + e 
- *  TODO: Add UV11 - UV40 Reactions!!
+ * ------- PH1/UV11:   CH2I  + p  -> CHI   + HI
+ * ------- PH2/UV12:   CH2II + p  -> CHI   + HII
+ * ------- PH3/UV13:   CH3I  + p  -> CH2I  + HI
+ * ------- PH4/UV14:   CH4I  + p  -> CH2I  + H2I
+ * ------- PH5/UV15:   CH4II + p  -> CH2II + H2I
+ * ------- PH7/UV16:   CHII  + p  -> CII   + HII
+ * ------- PH9/UV17:   COII  + p  -> CII   + OI
+ * ------- PH12/UV18:  H2II  + p  -> HII   + HI
+ * ------- PH13/UV19:  HCOII + p  -> COII  + HI
+ * ------- PH15/UV20:  O2II  + p  -> OII   + OI
+ * ------- PH17/UV21:  OHII  + p  -> OII   + HI
+ * ------- PH18/UV22:  CH4I  + p  -> CH4II + e
+ * ------- PH21/UV23:  H2OI  + p  -> H2OII + e
+ * ------- PH22/UV24:  O2I   + p  -> O2II  + e 
+ * ------- PH24/UV25:  CH2I  + p  -> CH2II + e
+ * ------- PH25/UV26:  CH3I  + p  -> CH3II + e
+ * ------- PH26/UV27:  H2OII + p  -> H2II  + OI
+ * ------- PH27/UV28:  H2OII + p  -> OII   + H2I
+ * ------- PH28/UV29:  H2OII + p  -> OHII  + HI
+ * ------- PH29/UV30:  H3OII + p  -> HII   + H2OI
+ * ------- PH30/UV31:  H3OII + p  -> H2II  + OHI
+ * ------- PH31/UV32:  H3OII + p  -> H2OII + HI
+ * ------- PH32/UV33:  H3OII + p  -> OHII  + H2I
+ * ------- PH33/UV34:  CH2II + p  -> CHII  + HI
+ * ------- PH34/UV35:  CH3II + p  -> CH2II + HI
+ * ------- PH35/UV36:  CH3II + p  -> CHII  + H2I
+ * ------- PH36/UV37:  CH4II + p  -> CH2II + H2I
+ * ------- PH37/UV38:  CH4II + p  -> CH3II + HI
+ * ------- PH38/UV39:  CH5II + p  -> CH4II + HI
+ * ------- PH39/UV40:  CH5II + p  -> CH3II + H2I
  *
  * ---------------CRX-Reactions--------------------
  *

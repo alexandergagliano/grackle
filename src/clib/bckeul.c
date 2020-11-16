@@ -21,19 +21,9 @@ extern reaction_t *my_reactions;
 // previous iteration should also be provided in the variable Ylst
 int backward_euler_step(double *r, double *Y, double dt, double *dtrcmd, int newton, double *Ylst, int ispecies, double UV, int water_rates) {
 
-  //const double rmax = 2, rmin = 0.2;
-  //double err = TINY;
-  //double tol = TINY;
-
-  //remove this stuff for now
-  //static int first = 1;
-  //static double *F, **J;
   double *F, **J;
-  //static gsl_matrix *A;
   gsl_matrix *A;
-  //static gsl_vector *b;
   gsl_vector *b;
-  //if(first){
     F = (double *) malloc(nSpecies * sizeof(double));
     J = (double **) malloc(nSpecies * sizeof(double *));
     for (int i = 0; i < nSpecies; i++){
@@ -41,8 +31,6 @@ int backward_euler_step(double *r, double *Y, double dt, double *dtrcmd, int new
     }
     b = gsl_vector_alloc(nSpecies);
     A = gsl_matrix_alloc(nSpecies,nSpecies);
-  //  first = 0;
-  //}
 
   memset(F, 0., nSpecies*sizeof(double));
   for(int i = 0; i < nSpecies; i++){
@@ -74,13 +62,6 @@ int backward_euler_step(double *r, double *Y, double dt, double *dtrcmd, int new
   // get RHS (dY/dt): use Y from last time step if BE or last iteration (Ylst) if NR
   (newton) ? cal_rhs(F, Ylst, my_reactions, r) : cal_rhs(F, Y, my_reactions, r);
 
-
-/*
-  for (int k = 0; k < nSpecies; k++){
-     printf("dydt[%i] = %.2e\n", k, F[k]);
-  }
-  */
-  
   // set up matrix A and vector b for the Ax = b linear solve
   if (newton) {
     // NR: copy -dt*J to A and Ylst - Y_previous - dt * F to b
@@ -103,7 +84,6 @@ int backward_euler_step(double *r, double *Y, double dt, double *dtrcmd, int new
     }
   }
 
-  /*printf("max/min A: %.5e, %.5e\n", gsl_matrix_max(A), gsl_matrix_min(A));*/
 
   // BE: A = I/dt - J; NR: A = I - dt*J
   if (newton) {
@@ -159,15 +139,10 @@ int backward_euler_NR(double *r, double *Y, double dt, double *dtrcmd, int ispec
 
   int iter, ierr, i;
   const int maxiter = 7;
-  //don't make it static! we're in a loop
-  //static int first_call = 1;
   double *Yold, *Ycur, *Ylst;
-  //if(first_call){
-    Yold = (double *) malloc(nSpecies * sizeof(double)); // abundances at prev. time step
-    Ycur = (double *) malloc(nSpecies * sizeof(double)); // abundances at current iteration
-    Ylst = (double *) malloc(nSpecies * sizeof(double)); // abundances at last iteration
-  //  first_call = 0;
-  //}
+  Yold = (double *) malloc(nSpecies * sizeof(double)); // abundances at prev. time step
+  Ycur = (double *) malloc(nSpecies * sizeof(double)); // abundances at current iteration
+  Ylst = (double *) malloc(nSpecies * sizeof(double)); // abundances at last iteration
   const double rmax = 2, rmin = 0.2;
   double err = TINY, tol;
   
@@ -180,7 +155,6 @@ int backward_euler_NR(double *r, double *Y, double dt, double *dtrcmd, int ispec
 
   // perform newton iterations
   for (iter = 0; iter < maxiter; iter++) {
-    //printf("Starting iteration number %i\n", iter + 1);
 
     // perform one backward euler step
     ierr = backward_euler_step(r, Yold, dt, dtrcmd, 1, Ycur, ispecies, UV, water_rates);
@@ -203,7 +177,6 @@ int backward_euler_NR(double *r, double *Y, double dt, double *dtrcmd, int ispec
 
   // recommended time step to try next
   *dtrcmd = fmax(fmin(pow(( tol / err ), HALF), rmax), rmin) * dt;
-  //printf("dttry = %.2e  dtrcmd = %.2e  err = %.2e  tol = %.2e  ierr %d  err = %s\n", dt, *dtrcmd, err, tol, ierr, errmsg[ierr]);
   free(Yold);
   free(Ycur);
   free(Ylst);

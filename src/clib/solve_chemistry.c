@@ -464,16 +464,12 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
   setup_rxns(my_chemistry->primordial_chemistry, UV_water, my_chemistry->crx_ionization, my_chemistry->water_rates);
   setup_species(my_chemistry->primordial_chemistry, UV_water, my_chemistry->crx_ionization, my_chemistry->water_rates);
 
-  // Building the reactions is time consuming. We should only do it once.
-  //static int first = 1;
-   //static double *Y;
-  //if(first){
+    //Build all the reactions we'll need for our network 
     my_reactions = (reaction_t*) malloc(nReactions*sizeof(reaction_t));
     build_reactions(my_reactions,my_chemistry->primordial_chemistry,UV_water,my_chemistry->crx_ionization, my_chemistry->water_rates);
     double *Y = (double *) malloc(nSpecies * sizeof(double));
-  //  first = 0;
-  //}
 
+  //Parallelization is off for now
   //# ifdef _OPENMP
   //# pragma omp parallel for schedule( runtime ) collapse(3) private(Y)
   //# endif
@@ -487,12 +483,12 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
            double Z_solar = my_chemistry->SolarMetalFractionByMass;
            double metallicity = my_fields->metal_density[index] / my_fields->density[index] / Z_solar;
 
-               //double temperature = (double) my_fields->internal_energy[index]* (double) temperature_units;
                double temperature;
                if(my_chemistry->water_only){
-                temperature = 100.0;  //setting high for now
+                temperature = 100.0;  // set for the equilibrium test problem 
                }
                else{
+                 //for speed, don't run Waternet if the metallicity is low in a cell
                  temperature = (double) my_fields->internal_energy[index]* (double) temperature_units;
                  if( metallicity < 1.e-8){
                    continue;
@@ -503,8 +499,8 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                Y[Hplus] = my_fields->HII_density[index];
 
                // convert to number density
-              // (grackle solves its species
-              // in code density)
+               // (Grackle solves its species
+               // in code density)
                Y[H]     *= d_to_n;
                Y[Hplus] *= d_to_n;
 
@@ -569,30 +565,20 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   Y[Heplus] *= d_to_n;
                }
 
-
-               //debugging printout 
-              //for (int j = 0; j < nSpecies; j++){
-              //    printf("%i, %.2e\n", j, Y[j]);
-              //}
-
+              //After solving the chemical network, we'll need to make sure we've conserved our number of Carbon and Oxygen atoms.
               double C_num_pre, O_num_pre, C_num_post, O_num_post, scale, sum_metl, metal_cgs, delta_mass, metl_frac, metal_frac;
-
-              //if (my_chemistry->water_rates == 1){
-                  // keep the number density of C species the same
-                  C_num_pre = Y[C] + Y[Cplus] + Y[CH] + Y[CH2] + Y[CH3] + Y[CH4] + Y[CO] + Y[COplus] + Y[CO2];
+                  
+              C_num_pre = Y[C] + Y[Cplus] + Y[CH] + Y[CH2] + Y[CH3] + Y[CH4] + Y[CO] + Y[COplus] + Y[CO2];
 
                  if (my_chemistry->water_rates ==3){
                          C_num_pre += Y[CHplus] + Y[CH2plus] + Y[HCOplus] + Y[CH3plus] + Y[CH4plus] + Y[CH5plus];
                  }
 
-                  // keep the number density of O species the same
                   O_num_pre = Y[O] + Y[OH] + Y[H2O] + 2.0*Y[O2] + Y[Oplus] + Y[OHplus] + Y[H2Oplus] + Y[H3Oplus] + 2.0*Y[O2plus] + Y[CO] + Y[COplus] + 2.0*Y[CO2];
 
                  if (my_chemistry->water_rates ==3){
                          O_num_pre += Y[HCOplus] + 2.0*Y[O2Hplus];
                  }
-              //} //how much is it differing before or after?? Err on the side of not correcting?
-              // Maybe indicate that you need to subcycle more?
 
                // complete one iteration of the water network
                ierr = integrate_network(my_chemistry->water_rates, Y, temperature, temperature, my_fields->density[index], metallicity*Z_solar, UV_water, my_chemistry->UVbackground_molec_redshift_on, my_chemistry->crx_ionization, dt_value * my_units->time_units, &nstp, my_units, my_chemistry->primordial_chemistry, my_chemistry->H2_self_shielding, my_uvb_rates.crsHI, my_uvb_rates.k24,my_chemistry->water_only, my_rates);
@@ -602,7 +588,6 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                    printf("Error in network integration: %s\n", errmsg[ierr]);
                    exit(99);
                }
-              //if (my_chemistry->water_rates == 1){
                   // keep the number density of C species the same
                   C_num_post = Y[C] + Y[Cplus] + Y[CH] + Y[CH2] + Y[CH3] + Y[CH4] + Y[CO] + Y[COplus] + Y[CO2];
                    if (my_chemistry->water_rates ==3){
@@ -631,7 +616,6 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   }
                  }
                  // keep the number density of O species the same
-
                   O_num_post = Y[O] + Y[OH] + Y[H2O] + 2.0*Y[O2] + Y[Oplus] + Y[OHplus] + Y[H2Oplus] + Y[H3Oplus] + 2.0*Y[O2plus] + Y[CO] + Y[COplus] + 2.0*Y[CO2];
 
                 if (my_chemistry->water_rates ==3){
@@ -677,10 +661,10 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                   double metal_exp = metal_frac*metal_cgs;
                   delta_mass = fabs((sum_metl - metal_exp)/(metal_exp));
 
-                  // Ensure water metals don't sum to greater than metal field //
+                  // Ensure water metals don't sum to greater than metal field
                   if ((sum_metl > metal_cgs) || (delta_mass > tiny)) {
-                     // scale the water species back to appropriate values //
-                     metl_frac = min(metal_cgs/sum_metl * metal_frac, 1.e50); //don't let us scale up by more than a certain amount in one iteration
+                     // scale the water species back to appropriate values (but don't let the abundances blow up!)
+                     metl_frac = min(metal_cgs/sum_metl * metal_frac, 1.e50);
 
                      Y[O]       *= metl_frac;
                      Y[OH]      *= metl_frac;
@@ -712,12 +696,14 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
                     }
                    }
 
-              // Set tiny floor for metal species - everything past
+              // Set tiny floor for metal species
               for (int j = 0; j < nSpecies; j++){
                   Y[j] = max(Y[j], tiny);
               }
 
                //account for ionization at high temperature
+               //NOTE: This is extremely hacky! A more thorough treatment 
+               //is underway...
                if (temperature >= 1.e5){
                   Y[Cplus] += Y[C];
                   Y[Oplus] += Y[O];
